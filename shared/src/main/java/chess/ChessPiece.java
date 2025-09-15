@@ -46,6 +46,24 @@ public class ChessPiece {
         return type;
     }
 
+    @Override
+    public String toString() {
+        return color.name() + " " + type.name();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ChessPiece chessPiece = (ChessPiece) o;
+        return (chessPiece.getTeamColor() == this.getTeamColor() && chessPiece.getPieceType() == this.getPieceType());
+    }
+
+    @Override
+    public int hashCode() {
+        return  7 * color.hashCode() + type.hashCode();
+    }
+
     /**
      *
      * @param board chess board
@@ -111,6 +129,7 @@ public class ChessPiece {
                 row = pos.getRow();
                 col = pos.getColumn();
                 newPos = new ChessPosition(row + color, col);
+                // check forward moves
                 if (checkCollision(board, piece, newPos) == 0) {
                     if (row == 4.5 + (color * 2.5)) {
                         addPromotionMoves(pos, newPos, moves);
@@ -121,6 +140,7 @@ public class ChessPiece {
                         if (checkCollision(board, piece, newPos) == 0) moves.add(new ChessMove(pos, newPos, null));
                     }
                 }
+                // check diagonal captures
                 newPos = new ChessPosition(row + color, col + 1);
                 if (checkCollision(board, piece, newPos) == -1) {
                     if (row == 4.5 + (color * 2.5)) {
