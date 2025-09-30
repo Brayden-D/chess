@@ -2,6 +2,7 @@ package chess;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Objects;
 
 /**
  * For a class that can manage a chess game, making moves on a board
@@ -13,6 +14,20 @@ public class ChessGame {
 
     ChessBoard board;
     TeamColor turn;
+
+    @Override
+    public int hashCode() {
+        return board.hashCode() + turn.ordinal();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        ChessGame chessGame = (ChessGame) o;
+        return Objects.equals(board, chessGame.board) && turn == chessGame.turn;
+    }
 
     public ChessGame() {
 
@@ -50,8 +65,7 @@ public class ChessGame {
      * startPosition
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
-        Collection<ChessMove> moves = board.getPiece(startPosition).pieceMoves(board, startPosition);
-        return moves;
+        return board.getPiece(startPosition).pieceMoves(board, startPosition);
     }
 
     /**
@@ -61,7 +75,13 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
-        throw new RuntimeException("Not implemented");
+        try {
+            ChessPiece piece = board.getPiece(move.getStartPosition());
+            board.addPiece(move.getStartPosition(), null);
+            board.addPiece(move.getEndPosition(), piece);
+        } catch (Exception e) {
+            throw new InvalidMoveException(e.getMessage());
+        };
     }
 
     /**
