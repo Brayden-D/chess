@@ -68,10 +68,9 @@ public class ChessPiece {
      *
      * @param board chess board
      * @param pos chess position
-     * @param piece piece to be checked against
      * @return 0 if no piece, -1 if different colors, 1 if same color, 2 if out of bounds
      */
-    private int checkCollision(ChessBoard board, ChessPiece piece, ChessPosition pos) {
+    private int checkCollision(ChessBoard board, ChessPosition pos) {
         int tempRow = pos.getRow();
         int tempCol = pos.getColumn();
         if (tempRow < 1 || tempCol < 1 || tempRow > 8 || tempCol > 8) {
@@ -79,7 +78,7 @@ public class ChessPiece {
         }
         ChessPiece checkPiece = board.getPiece(new ChessPosition(tempRow, tempCol));
         if (checkPiece != null) {
-            if (piece.getTeamColor() == checkPiece.getTeamColor()) {
+            if (color == checkPiece.getTeamColor()) {
                 return 1;
             } else {
                 return -1;
@@ -91,11 +90,10 @@ public class ChessPiece {
     private void checkDirection(ChessBoard board, ChessPosition myPosition, int rowDir, int colDir, Collection<ChessMove> moves) {
         int tempRow = myPosition.getRow();
         int tempCol = myPosition.getColumn();
-        ChessPiece checkPiece = board.getPiece(myPosition);
         while(true) {
             tempCol += colDir;
             tempRow += rowDir;
-            int check = checkCollision(board, checkPiece, new ChessPosition(tempRow, tempCol));
+            int check = checkCollision(board, new ChessPosition(tempRow, tempCol));
             if (check > 0) break;
             moves.add(new ChessMove(myPosition, new ChessPosition(tempRow, tempCol), null));
             if (check == -1) break;
@@ -118,39 +116,38 @@ public class ChessPiece {
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition pos) {
         Collection<ChessMove> moves = new ArrayList<>();
-        ChessPiece piece = board.getPiece(pos);
         int row, col;
         ChessPosition newPos;
-        switch(piece.getPieceType()) {
+        switch(type) {
             case PieceType.PAWN:
-                int color;
-                if (piece.getTeamColor() == ChessGame.TeamColor.WHITE) {color = 1;}
-                else {color = -1;}
+                int colorDir;
+                if (color == ChessGame.TeamColor.WHITE) {colorDir = 1;}
+                else {colorDir = -1;}
                 row = pos.getRow();
                 col = pos.getColumn();
-                newPos = new ChessPosition(row + color, col);
+                newPos = new ChessPosition(row + colorDir, col);
                 // check forward moves
-                if (checkCollision(board, piece, newPos) == 0) {
-                    if (row == 4.5 + (color * 2.5)) {
+                if (checkCollision(board, newPos) == 0) {
+                    if (row == 4.5 + (colorDir * 2.5)) {
                         addPromotionMoves(pos, newPos, moves);
                     }
                     else moves.add(new ChessMove(pos, newPos, null));
-                    if (row == 4.5 - (color * 2.5)) {
-                        newPos = new ChessPosition(row + (color * 2), col);
-                        if (checkCollision(board, piece, newPos) == 0) moves.add(new ChessMove(pos, newPos, null));
+                    if (row == 4.5 - (colorDir * 2.5)) {
+                        newPos = new ChessPosition(row + (colorDir * 2), col);
+                        if (checkCollision(board, newPos) == 0) moves.add(new ChessMove(pos, newPos, null));
                     }
                 }
                 // check diagonal captures
-                newPos = new ChessPosition(row + color, col + 1);
-                if (checkCollision(board, piece, newPos) == -1) {
-                    if (row == 4.5 + (color * 2.5)) {
+                newPos = new ChessPosition(row + colorDir, col + 1);
+                if (checkCollision(board, newPos) == -1) {
+                    if (row == 4.5 + (colorDir * 2.5)) {
                         addPromotionMoves(pos, newPos, moves);
                     }
                     else moves.add(new ChessMove(pos, newPos, null));
                 }
-                newPos = new ChessPosition(row + color, col - 1);
-                if (checkCollision(board, piece, newPos) == -1) {
-                    if (row == 4.5 + (color * 2.5)) {
+                newPos = new ChessPosition(row + colorDir, col - 1);
+                if (checkCollision(board, newPos) == -1) {
+                    if (row == 4.5 + (colorDir * 2.5)) {
                         addPromotionMoves(pos, newPos, moves);
                     }
                     else moves.add(new ChessMove(pos, newPos, null));
@@ -160,21 +157,21 @@ public class ChessPiece {
                 row = pos.getRow();
                 col = pos.getColumn();
                 newPos = new ChessPosition(row + 2, col + 1);
-                if (checkCollision(board, piece, newPos) <= 0) moves.add(new ChessMove(pos, newPos, null));
+                if (checkCollision(board, newPos) <= 0) moves.add(new ChessMove(pos, newPos, null));
                 newPos = new ChessPosition(row + 2, col - 1);
-                if (checkCollision(board, piece, newPos) <= 0) moves.add(new ChessMove(pos, newPos, null));
+                if (checkCollision(board, newPos) <= 0) moves.add(new ChessMove(pos, newPos, null));
                 newPos = new ChessPosition(row - 2, col + 1);
-                if (checkCollision(board, piece, newPos) <= 0) moves.add(new ChessMove(pos, newPos, null));
+                if (checkCollision(board, newPos) <= 0) moves.add(new ChessMove(pos, newPos, null));
                 newPos = new ChessPosition(row - 2, col - 1);
-                if (checkCollision(board, piece, newPos) <= 0) moves.add(new ChessMove(pos, newPos, null));
+                if (checkCollision(board, newPos) <= 0) moves.add(new ChessMove(pos, newPos, null));
                 newPos = new ChessPosition(row + 1, col + 2);
-                if (checkCollision(board, piece, newPos) <= 0) moves.add(new ChessMove(pos, newPos, null));
+                if (checkCollision(board, newPos) <= 0) moves.add(new ChessMove(pos, newPos, null));
                 newPos = new ChessPosition(row - 1, col + 2);
-                if (checkCollision(board, piece, newPos) <= 0) moves.add(new ChessMove(pos, newPos, null));
+                if (checkCollision(board, newPos) <= 0) moves.add(new ChessMove(pos, newPos, null));
                 newPos = new ChessPosition(row + 1, col - 2);
-                if (checkCollision(board, piece, newPos) <= 0) moves.add(new ChessMove(pos, newPos, null));
+                if (checkCollision(board, newPos) <= 0) moves.add(new ChessMove(pos, newPos, null));
                 newPos = new ChessPosition(row - 1, col - 2);
-                if (checkCollision(board, piece, newPos) <= 0) moves.add(new ChessMove(pos, newPos, null));
+                if (checkCollision(board, newPos) <= 0) moves.add(new ChessMove(pos, newPos, null));
                 break;
             case PieceType.BISHOP:
                 checkDirection(board, pos, 1, 1, moves);
@@ -202,21 +199,21 @@ public class ChessPiece {
                 row = pos.getRow();
                 col = pos.getColumn();
                 newPos = new ChessPosition(row + 1, col);
-                if (checkCollision(board, piece, newPos) <= 0) moves.add(new ChessMove(pos, newPos, null));
+                if (checkCollision(board, newPos) <= 0) moves.add(new ChessMove(pos, newPos, null));
                 newPos = new ChessPosition(row -1, col);
-                if (checkCollision(board, piece, newPos) <= 0) moves.add(new ChessMove(pos, newPos, null));
+                if (checkCollision(board, newPos) <= 0) moves.add(new ChessMove(pos, newPos, null));
                 newPos = new ChessPosition(row, col + 1);
-                if (checkCollision(board, piece, newPos) <= 0) moves.add(new ChessMove(pos, newPos, null));
+                if (checkCollision(board, newPos) <= 0) moves.add(new ChessMove(pos, newPos, null));
                 newPos = new ChessPosition(row, col - 1);
-                if (checkCollision(board, piece, newPos) <= 0) moves.add(new ChessMove(pos, newPos, null));
+                if (checkCollision(board, newPos) <= 0) moves.add(new ChessMove(pos, newPos, null));
                 newPos = new ChessPosition(row + 1, col + 1);
-                if (checkCollision(board, piece, newPos) <= 0) moves.add(new ChessMove(pos, newPos, null));
+                if (checkCollision(board, newPos) <= 0) moves.add(new ChessMove(pos, newPos, null));
                 newPos = new ChessPosition(row + 1, col - 1);
-                if (checkCollision(board, piece, newPos) <= 0) moves.add(new ChessMove(pos, newPos, null));
+                if (checkCollision(board, newPos) <= 0) moves.add(new ChessMove(pos, newPos, null));
                 newPos = new ChessPosition(row - 1, col + 1);
-                if (checkCollision(board, piece, newPos) <= 0) moves.add(new ChessMove(pos, newPos, null));
+                if (checkCollision(board, newPos) <= 0) moves.add(new ChessMove(pos, newPos, null));
                 newPos = new ChessPosition(row - 1, col - 1);
-                if (checkCollision(board, piece, newPos) <= 0) moves.add(new ChessMove(pos, newPos, null));
+                if (checkCollision(board, newPos) <= 0) moves.add(new ChessMove(pos, newPos, null));
                 break;
             default:
                 throw new IllegalStateException("Unexpected value: " + board.getPiece(pos));
