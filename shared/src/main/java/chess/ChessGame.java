@@ -120,7 +120,8 @@ public class ChessGame {
     public void makeMove(ChessMove move) throws InvalidMoveException {
         if (move == null) {throw new InvalidMoveException();}
         ChessPiece piece = board.getPiece(move.getStartPosition());
-        if (piece == null) {throw new InvalidMoveException();}
+        if (piece == null || piece.getTeamColor() != turn) {throw new InvalidMoveException();}
+        if (!piece.pieceMoves(board, move.getStartPosition()).contains(move)) {throw new InvalidMoveException();}
 
         board.addPiece(move.getStartPosition(), null);
         if (piece.getPieceType() == ChessPiece.PieceType.PAWN &&
@@ -130,10 +131,12 @@ public class ChessGame {
         }
         else board.addPiece(move.getEndPosition(), piece);
 
-
         if (isInCheck(piece.getTeamColor())) {
             throw new InvalidMoveException();
         }
+
+        if (turn == TeamColor.WHITE) turn = TeamColor.BLACK;
+        else turn = TeamColor.WHITE;
     }
 
     /**
