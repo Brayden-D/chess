@@ -85,10 +85,12 @@ public class ChessGame {
         ChessGame testGame = new ChessGame();
         ChessBoard testBoard = new ChessBoard();
         for (ChessMove move : moves) {
+
+            // deep copy of board
             for (int i = 1; i <= 8; i++) {
                 for (int j = 1; j <= 8; j++) {
                     ChessPosition testPosition = new ChessPosition(i, j);
-                    ChessPiece testPiece = testBoard.getPiece(testPosition);
+                    ChessPiece testPiece = board.getPiece(testPosition);
                     testBoard.addPiece(testPosition, null);
                     if (testPiece != null) {
                         testBoard.addPiece(testPosition, new ChessPiece(testPiece.getTeamColor(), testPiece.getPieceType()));
@@ -96,6 +98,7 @@ public class ChessGame {
                 }
             }
             testGame.setBoard(testBoard);
+
             try {
                 testGame.makeMove(move);
             } catch (InvalidMoveException x) {
@@ -118,8 +121,16 @@ public class ChessGame {
         if (move == null) {throw new InvalidMoveException();}
         ChessPiece piece = board.getPiece(move.getStartPosition());
         if (piece == null) {throw new InvalidMoveException();}
+
         board.addPiece(move.getStartPosition(), null);
-        board.addPiece(move.getEndPosition(), piece);
+        if (piece.getPieceType() == ChessPiece.PieceType.PAWN &&
+                ((move.getEndPosition().getRow() == 8 && piece.getTeamColor() == TeamColor.WHITE) ||
+                 (move.getEndPosition().getRow() == 1 && piece.getTeamColor() == TeamColor.BLACK))){
+            board.addPiece(move.getEndPosition(), new ChessPiece(piece.getTeamColor(), move.getPromotionPiece()));
+        }
+        else board.addPiece(move.getEndPosition(), piece);
+
+
         if (isInCheck(piece.getTeamColor())) {
             throw new InvalidMoveException();
         }
