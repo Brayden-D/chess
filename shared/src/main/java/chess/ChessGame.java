@@ -14,6 +14,7 @@ public class ChessGame {
 
     ChessBoard board;
     TeamColor turn;
+    ChessPosition[] kingPositions = new ChessPosition[3];
 
     @Override
     public int hashCode() {
@@ -27,6 +28,18 @@ public class ChessGame {
         }
         ChessGame chessGame = (ChessGame) o;
         return Objects.equals(board, chessGame.board) && turn == chessGame.turn;
+    }
+
+    public void setKingPositions() {
+        for (int i = 1; i <= 8; i++) {
+            for (int j = 1; j <= 8; j++) {
+                ChessPosition position = new ChessPosition(i, j);
+                if (board.getPiece(position) != null &&
+                        board.getPiece(position).getPieceType() == ChessPiece.PieceType.KING) {
+                    kingPositions[board.getPiece(position).getTeamColor().ordinal()] = position;
+                }
+            }
+        }
     }
 
     public ChessGame() {
@@ -65,7 +78,17 @@ public class ChessGame {
      * startPosition
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
-        return board.getPiece(startPosition).pieceMoves(board, startPosition);
+        Collection<ChessMove> moves= board.getPiece(startPosition).pieceMoves(board, startPosition);
+        for (ChessMove move : moves) {
+            ChessGame testGame = new ChessGame();
+            testGame.setBoard(board);
+            try {
+                testGame.makeMove(move);
+            } catch (InvalidMoveException x) {
+                moves.remove(move);
+            }
+        }
+        return moves;
     }
 
     /**
@@ -75,13 +98,13 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
-        try {
-            ChessPiece piece = board.getPiece(move.getStartPosition());
-            board.addPiece(move.getStartPosition(), null);
-            board.addPiece(move.getEndPosition(), piece);
-        } catch (Exception e) {
-            throw new InvalidMoveException(e.getMessage());
-        };
+        if (move == null) {throw new InvalidMoveException();}
+        ChessPiece piece = board.getPiece(move.getStartPosition());
+        board.addPiece(move.getStartPosition(), null);
+        board.addPiece(move.getEndPosition(), piece);
+        if (isInCheck(piece.getTeamColor())) {
+            throw new InvalidMoveException();
+        }
     }
 
     /**
@@ -92,29 +115,18 @@ public class ChessGame {
      */
     public boolean isInCheck(TeamColor teamColor) {
         boolean inCheck = false;
-        ChessPosition kingPosition = null;
-        for (int i = 1; i <= 8; i++) {
-            for (int j = 1; j <= 8; j++) {
-                ChessPosition position = new ChessPosition(i, j);
-                if (board.getPiece(position) != null &&
-                        board.getPiece(position).getTeamColor().equals(teamColor) &&
-                        board.getPiece(position).getPieceType() == ChessPiece.PieceType.KING) {
-                    kingPosition = position;
-                    i = 9;
-                    j = 9;
-                }
-            }
-        }
+        setKingPositions();
         for (int i = 1; i <= 8; i++) {
             for (int j = 1; j <= 8; j++) {
                 ChessPosition position = new ChessPosition(i, j);
                 if (board.getPiece(position) != null && !board.getPiece(position).getTeamColor().equals(teamColor)) {
-                    Collection<ChessMove> moves = validMoves(position);
+                    Collection<ChessMove> moves = board.getPiece(position).pieceMoves(board, position);
                     for (ChessMove move : moves) {
-                        if (move.getEndPosition().equals(kingPosition)) {
+                        if (move.getEndPosition().equals(kingPositions[teamColor.ordinal()])) {
                             inCheck = true;
                             i = 9;
                             j = 9;
+                            break;
                         }
                     }
                 }
@@ -130,7 +142,7 @@ public class ChessGame {
      * @return True if the specified team is in checkmate
      */
     public boolean isInCheckmate(TeamColor teamColor) {
-        throw new RuntimeException("Not implemented");
+        return false;
     }
 
     /**
