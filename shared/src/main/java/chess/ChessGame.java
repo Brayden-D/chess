@@ -98,8 +98,8 @@ public class ChessGame {
                 }
             }
             testGame.setBoard(testBoard);
-
             try {
+                testGame.setTeamTurn(testBoard.getPiece(move.getStartPosition()).getTeamColor());
                 testGame.makeMove(move);
             } catch (InvalidMoveException x) {
                 invalidMoves.add(move);
@@ -134,6 +134,7 @@ public class ChessGame {
         if (isInCheck(piece.getTeamColor())) {
             throw new InvalidMoveException();
         }
+
 
         if (turn == TeamColor.WHITE) turn = TeamColor.BLACK;
         else turn = TeamColor.WHITE;
