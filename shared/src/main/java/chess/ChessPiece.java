@@ -200,7 +200,7 @@ public class ChessPiece {
                 col = pos.getColumn();
                 newPos = new ChessPosition(row + 1, col);
                 if (checkCollision(board, newPos) <= 0) moves.add(new ChessMove(pos, newPos, null));
-                newPos = new ChessPosition(row -1, col);
+                newPos = new ChessPosition(row - 1, col);
                 if (checkCollision(board, newPos) <= 0) moves.add(new ChessMove(pos, newPos, null));
                 newPos = new ChessPosition(row, col + 1);
                 if (checkCollision(board, newPos) <= 0) moves.add(new ChessMove(pos, newPos, null));
