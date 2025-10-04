@@ -214,6 +214,41 @@ public class ChessPiece {
                 if (checkCollision(board, newPos) <= 0) moves.add(new ChessMove(pos, newPos, null));
                 newPos = new ChessPosition(row - 1, col - 1);
                 if (checkCollision(board, newPos) <= 0) moves.add(new ChessMove(pos, newPos, null));
+                //castling
+                if (row == 1 && col == 5 && getTeamColor() == ChessGame.TeamColor.WHITE &&
+                        board.getPiece(new ChessPosition(1,2)) == null &&
+                        board.getPiece(new ChessPosition(1,3)) == null &&
+                        board.getPiece(new ChessPosition(1,4)) == null &&
+                        board.getPiece(new ChessPosition(1,1)) != null &&
+                        board.getPiece(new ChessPosition(1,1)).getPieceType() == PieceType.ROOK &&
+                        board.getPiece(new ChessPosition(1,1)).getTeamColor() == ChessGame.TeamColor.WHITE) {
+                    moves.add(new ChessMove(pos, new ChessPosition(1, 3), null));
+                }
+                if (row == 1 && col == 5 && getTeamColor() == ChessGame.TeamColor.WHITE &&
+                        board.getPiece(new ChessPosition(1,6)) == null &&
+                        board.getPiece(new ChessPosition(1,7)) == null &&
+                        board.getPiece(new ChessPosition(1,8)) != null &&
+                        board.getPiece(new ChessPosition(1,8)).getPieceType() == PieceType.ROOK &&
+                        board.getPiece(new ChessPosition(1,8)).getTeamColor() == ChessGame.TeamColor.WHITE) {
+                    moves.add(new ChessMove(pos, new ChessPosition(1, 7), null));
+                }
+                if (row == 8 && col == 5 && getTeamColor() == ChessGame.TeamColor.BLACK &&
+                        board.getPiece(new ChessPosition(8,2)) == null &&
+                        board.getPiece(new ChessPosition(8,3)) == null &&
+                        board.getPiece(new ChessPosition(8,4)) == null &&
+                        board.getPiece(new ChessPosition(8,1)) != null &&
+                        board.getPiece(new ChessPosition(8,1)).getPieceType() == PieceType.ROOK &&
+                        board.getPiece(new ChessPosition(8,1)).getTeamColor() == ChessGame.TeamColor.BLACK) {
+                    moves.add(new ChessMove(pos, new ChessPosition(8, 3), null));
+                }
+                if (row == 8 && col == 5 && getTeamColor() == ChessGame.TeamColor.BLACK &&
+                        board.getPiece(new ChessPosition(8,6)) == null &&
+                        board.getPiece(new ChessPosition(8,7)) == null &&
+                        board.getPiece(new ChessPosition(8,8)) != null &&
+                        board.getPiece(new ChessPosition(8,8)).getPieceType() == PieceType.ROOK &&
+                        board.getPiece(new ChessPosition(8,8)).getTeamColor() == ChessGame.TeamColor.BLACK) {
+                    moves.add(new ChessMove(pos, new ChessPosition(8, 7), null));
+                }
                 break;
             default:
                 throw new IllegalStateException("Unexpected value: " + board.getPiece(pos));
