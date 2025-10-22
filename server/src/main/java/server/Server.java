@@ -36,8 +36,14 @@ public class Server {
     }
 
     private void register(Context ctx) {
+
         try {
             UserData data = ctx.bodyAsClass(UserData.class);
+            if (data.username() == null || data.password() == null || data.email() == null) {
+                ctx.status(400);
+                ctx.json(Map.of("message", "Error: Username or Password or Email is null"));
+                return;
+            }
             RegisterService registerService = new RegisterService();
             RegisterResult result = registerService.register(data);
 
