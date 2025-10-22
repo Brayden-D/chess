@@ -30,6 +30,9 @@ public class Server {
 
         // Login endpoint
         server.post("/session", this::login);
+
+        // Logout endpoint
+        server.delete("/session", this::logout);
     }
 
     private void delete(Context ctx) {
@@ -75,6 +78,23 @@ public class Server {
             AuthData loginResult = loginService.login(data.username(), data.password());
             ctx.json(loginResult).status(200);
 
+        } catch (Exception e) {
+            if (Objects.equals(e.getMessage(), "Error: unauthorized")) {
+                ctx.status(401);
+                ctx.json(Map.of("message", "Error: unauthorized"));
+            } else {
+                ctx.status(500);
+                ctx.json(Map.of("message", "Internal server error"));
+            }
+        }
+    }
+
+    private void logout(Context ctx) {
+        try {
+            String authToken = ctx.header("authorization");
+            UserService logoutService = new UserService();
+            DeleteResult loginResult = logoutService.logout(authToken);
+            ctx.json(loginResult).status(200);
         } catch (Exception e) {
             if (Objects.equals(e.getMessage(), "Error: unauthorized")) {
                 ctx.status(401);

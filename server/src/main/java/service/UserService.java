@@ -33,6 +33,18 @@ public class UserService {
         return authDAO.createAuthData(username);
     }
 
+    public DeleteResult logout(String authToken) {
+        MemoryAuthDAO authDAO = new MemoryAuthDAO();
+        try {
+            authDAO.deleteAuth(authToken);
+            return new DeleteResult(true);
+
+        }
+        catch (Exception e) {
+            throw new RuntimeException("Error: unauthorized");
+        }
+    }
+
 
 
 }

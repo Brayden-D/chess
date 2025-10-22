@@ -52,14 +52,20 @@ public class MemoryAuthDAO implements AuthDAO {
         return authData;
     }
 
-    public void deleteAuth(String username) {
-        try {
-            List<String> lines = Files.readAllLines(Paths.get(FILE_PATH));
-            lines.removeIf(line -> line.startsWith(username + ","));
-            Files.write(Paths.get(FILE_PATH), lines);
-        } catch (IOException e) {
-            e.printStackTrace();
+    public void deleteAuth(String authToken) throws Exception {
+        Path path = Paths.get(FILE_PATH);
+        List<String> lines = Files.readAllLines(path);
+
+        boolean removed = lines.removeIf(line -> {
+            String[] parts = line.split(",");
+            return parts.length == 2 && parts[1].equals(authToken);
+        });
+
+        if (!removed) {
+            throw new Exception("Error: unauthorized");
         }
+
+        Files.write(path, lines);
     }
 
 }
