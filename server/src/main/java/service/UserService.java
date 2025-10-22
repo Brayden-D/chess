@@ -7,7 +7,7 @@ import model.AuthData;
 import server.recordClasses.*;
 import model.UserData;
 
-public class RegisterService {
+public class UserService {
     public RegisterResult register(UserData data) {
         MemoryUserDAO userDAO = new MemoryUserDAO();
         MemoryAuthDAO authDAO = new MemoryAuthDAO();
@@ -18,6 +18,19 @@ public class RegisterService {
         AuthData auth = authDAO.createAuthData(data.username());
         return new RegisterResult(auth.username(), auth.authToken());
 
+    }
+
+    public AuthData login(String username, String password) {
+        MemoryUserDAO userDAO = new MemoryUserDAO();
+        MemoryAuthDAO authDAO = new MemoryAuthDAO();
+        UserData user = userDAO.findUser(username);
+        if (user == null) {
+            throw new RuntimeException("Error: Bad Request");
+        }
+        if (!user.password().equals(password)) {
+            throw new RuntimeException("Error: unauthorized");
+        }
+        return authDAO.createAuthData(username);
     }
 
 

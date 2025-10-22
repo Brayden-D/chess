@@ -3,9 +3,10 @@ package server;
 import io.javalin.*;
 import io.javalin.http.Context;
 import io.javalin.json.JavalinGson;
+import org.eclipse.jetty.security.LoginService;
 import server.recordClasses.*;
 import service.DeleteService;
-import service.RegisterService;
+import service.UserService;
 import model.*;
 
 import java.util.Map;
@@ -13,19 +14,22 @@ import java.util.Objects;
 
 public class Server {
 
-    private final Javalin javalin;
+    private final Javalin server;
 
     public Server() {
-        javalin = Javalin.create(config -> {
+        server = Javalin.create(config -> {
             config.staticFiles.add("web");
             config.jsonMapper(new JavalinGson());
         });
 
         // Delete endpoint
-        javalin.delete("/db", this::delete);
+        server.delete("/db", this::delete);
 
         // Register endpoint
-        javalin.post("/user", this::register);
+        server.post("/user", this::register);
+
+        // Login endpoint
+        server.post("/session", this::login);
     }
 
     private void delete(Context ctx) {
@@ -44,7 +48,7 @@ public class Server {
                 ctx.json(Map.of("message", "Error: Username or Password or Email is null"));
                 return;
             }
-            RegisterService registerService = new RegisterService();
+            UserService registerService = new UserService();
             RegisterResult result = registerService.register(data);
 
             ctx.json(result).status(200);
@@ -59,12 +63,34 @@ public class Server {
         }
     }
 
-    public int run(int desiredPort) {
-        javalin.start(desiredPort);
-        return javalin.port();
+    private void login(Context ctx) {
+        try{
+            UserData data = ctx.bodyAsClass(UserData.class);
+            UserService loginService = new UserService();
+            if (data.username() == null || data.password() == null) {
+                ctx.status(400);
+                ctx.json(Map.of("message", "Error: Username or Password is null"));
+                return;
+            }
+            AuthData loginResult = loginService.login(data.username(), data.password());
+            ctx.json(loginResult).status(200);
+
+        } catch (Exception e) {
+            if (Objects.equals(e.getMessage(), "Error: unauthorized")) {
+                ctx.status(401);
+                ctx.json(Map.of("message", "Error: unauthorized"));
+            } else {
+                ctx.status(500);
+                ctx.json(Map.of("message", "Internal server error"));
+            }
+        }
     }
 
-    public void stop() {
-        javalin.stop();
+    public int run(int desiredPort) {
+        server.start(desiredPort);
+        return server.port();
+    }
+
+    public void stop() {server.stop();
     }
 }
