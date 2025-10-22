@@ -8,6 +8,8 @@ import service.DeleteService;
 import service.RegisterService;
 import model.*;
 
+import java.util.Objects;
+
 public class Server {
 
     private final Javalin javalin;
@@ -33,11 +35,19 @@ public class Server {
     }
 
     private void register(Context ctx) {
-        UserData data = ctx.bodyAsClass(UserData.class);
-        RegisterService registerService = new RegisterService();
-        RegisterResult result = registerService.register(data);
+        try {
+            UserData data = ctx.bodyAsClass(UserData.class);
+            RegisterService registerService = new RegisterService();
+            RegisterResult result = registerService.register(data);
 
-        ctx.json(result).status(200);
+            ctx.json(result).status(200);
+        } catch (Exception e) {
+            if (Objects.equals(e.getMessage(), "Error: username already taken")) {
+                ctx.status(403).result(e.getMessage());
+            } else {
+                ctx.status(500).result(e.getMessage());
+            }
+        }
     }
 
     public int run(int desiredPort) {

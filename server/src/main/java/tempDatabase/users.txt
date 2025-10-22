@@ -1,0 +1,2 @@
+ExistingUser,existingUserPassword,eu@mail.com
+NewUser,newUserPassword,nu@mail.com

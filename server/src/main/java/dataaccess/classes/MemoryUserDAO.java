@@ -1,6 +1,7 @@
 package dataaccess.classes;
 
 import dataaccess.interfaces.UserDAO;
+import model.AuthData;
 import model.UserData;
 
 
