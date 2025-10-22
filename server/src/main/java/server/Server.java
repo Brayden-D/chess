@@ -2,16 +2,21 @@ package server;
 
 import io.javalin.*;
 import io.javalin.http.Context;
-import server.recordClasses.RegisterData;
-import server.recordClasses.RegisterResult;
+import io.javalin.json.JavalinGson;
+import server.recordClasses.*;
+import service.DeleteService;
 import service.RegisterService;
+import model.*;
 
 public class Server {
 
     private final Javalin javalin;
 
     public Server() {
-        javalin = Javalin.create(config -> config.staticFiles.add("web"));
+        javalin = Javalin.create(config -> {
+            config.staticFiles.add("web");
+            config.jsonMapper(new JavalinGson());
+        });
 
         // Delete endpoint
         javalin.delete("/db", this::delete);
@@ -21,11 +26,14 @@ public class Server {
     }
 
     private void delete(Context ctx) {
+        DeleteService deleteService = new DeleteService();
+        DeleteResult deleteResult = deleteService.deleteAll();
 
+        ctx.status(200);
     }
 
     private void register(Context ctx) {
-        RegisterData data = ctx.bodyAsClass(RegisterData.class);
+        UserData data = ctx.bodyAsClass(UserData.class);
         RegisterService registerService = new RegisterService();
         RegisterResult result = registerService.register(data);
 
