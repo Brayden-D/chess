@@ -8,6 +8,7 @@ import service.DeleteService;
 import service.RegisterService;
 import model.*;
 
+import java.util.Map;
 import java.util.Objects;
 
 public class Server {
@@ -43,9 +44,11 @@ public class Server {
             ctx.json(result).status(200);
         } catch (Exception e) {
             if (Objects.equals(e.getMessage(), "Error: username already taken")) {
-                ctx.status(403).result(e.getMessage());
+                ctx.status(403);
+                ctx.json(Map.of("message", "Error: username already taken"));
             } else {
-                ctx.status(500).result(e.getMessage());
+                ctx.status(500);
+                ctx.json(Map.of("message", "Internal server error"));
             }
         }
     }
