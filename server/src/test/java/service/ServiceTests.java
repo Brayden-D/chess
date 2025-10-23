@@ -46,7 +46,18 @@ public class ServiceTests {
     }
 
     @Test
-    public void logoutLoginValid() {
+    public void logoutValid() {
+        DeleteService deleteService = new DeleteService();
+        deleteService.deleteAll();
+
+        UserService userService = new UserService();
+        RegisterResult result = userService.register(new UserData("user1", "password", "user1@gmail.com"));
+        userService.logout(result.authToken());
+
+    }
+
+    @Test
+    public void loginValid() {
         DeleteService deleteService = new DeleteService();
         deleteService.deleteAll();
 
