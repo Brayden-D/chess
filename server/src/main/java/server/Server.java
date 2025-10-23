@@ -4,8 +4,7 @@ import chess.ChessGame;
 import io.javalin.*;
 import io.javalin.http.Context;
 import io.javalin.json.JavalinGson;
-import org.eclipse.jetty.security.LoginService;
-import server.recordClasses.*;
+import server.recordclasses.*;
 import service.DeleteService;
 import service.GameService;
 import service.UserService;
@@ -54,6 +53,10 @@ public class Server {
         ctx.status(200);
     }
 
+    private boolean isAuthError(Exception e) {
+        return Objects.equals(e.getMessage(), "Error: unauthorized");
+    }
+
     private void register(Context ctx) {
 
         try {
@@ -91,7 +94,7 @@ public class Server {
             ctx.json(loginResult).status(200);
 
         } catch (Exception e) {
-            if (Objects.equals(e.getMessage(), "Error: unauthorized")) {
+            if (isAuthError(e)) {
                 ctx.status(401);
                 ctx.json(Map.of("message", "Error: unauthorized"));
             } else if (Objects.equals(e.getMessage(), "Error: Bad Request")) {
@@ -111,7 +114,7 @@ public class Server {
             DeleteResult loginResult = logoutService.logout(authToken);
             ctx.json(loginResult).status(200);
         } catch (Exception e) {
-            if (Objects.equals(e.getMessage(), "Error: unauthorized")) {
+            if (isAuthError(e)) {
                 ctx.status(401);
                 ctx.json(Map.of("message", "Error: unauthorized"));
             } else {
@@ -138,7 +141,7 @@ public class Server {
             ctx.json(Map.of("gameID", newGame.gameID())).status(200);
 
         } catch (Exception e) {
-            if (Objects.equals(e.getMessage(), "Error: unauthorized")) {
+            if (isAuthError(e)) {
                 ctx.status(401);
                 ctx.json(Map.of("message", "Error: unauthorized"));
             } else {

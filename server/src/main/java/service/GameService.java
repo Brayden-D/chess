@@ -4,7 +4,7 @@ package service;
 import dataaccess.classes.MemoryAuthDAO;
 import dataaccess.classes.MemoryGameDAO;
 import model.GameData;
-import server.recordClasses.JoinData;
+import server.recordclasses.JoinData;
 
 import java.util.ArrayList;
 

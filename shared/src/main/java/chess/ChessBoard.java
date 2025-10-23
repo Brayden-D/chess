@@ -39,8 +39,8 @@ public class ChessBoard {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {return true;}
+        if (o == null || getClass() != o.getClass()) {return false;}
         ChessBoard chessBoard = (ChessBoard) o;
         for (int i = 0; i < 8; i++) {
             for (int j = 0; j < 8; j++) {

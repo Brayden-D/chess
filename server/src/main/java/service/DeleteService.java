@@ -3,8 +3,7 @@ package service;
 import dataaccess.classes.MemoryAuthDAO;
 import dataaccess.classes.MemoryGameDAO;
 import dataaccess.classes.MemoryUserDAO;
-import model.*;
-import server.recordClasses.DeleteResult;
+import server.recordclasses.DeleteResult;
 
 public class DeleteService {
     public DeleteResult deleteAll() {

@@ -5,8 +5,8 @@ import model.GameData;
 import model.UserData;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import server.recordClasses.JoinData;
-import server.recordClasses.RegisterResult;
+import server.recordclasses.JoinData;
+import server.recordclasses.RegisterResult;
 
 public class ServiceTests {
 
@@ -46,7 +46,7 @@ public class ServiceTests {
     }
 
     @Test
-    public void logout_loginValid() {
+    public void logoutLoginValid() {
         DeleteService deleteService = new DeleteService();
         deleteService.deleteAll();
 

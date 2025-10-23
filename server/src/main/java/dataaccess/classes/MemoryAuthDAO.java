@@ -12,7 +12,7 @@ public class MemoryAuthDAO implements AuthDAO {
 
     private static final String FILE_PATH = "src/main/java/tempDatabase/loggedIn.txt";
 
-
+    /*
     public AuthData getAuthData(String username) {
         try {
             List<String> lines = Files.readAllLines(Paths.get(FILE_PATH));
@@ -27,6 +27,7 @@ public class MemoryAuthDAO implements AuthDAO {
         }
         return null; // Not found
     }
+    */
 
     public void clear() {
         try {

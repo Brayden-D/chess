@@ -4,7 +4,7 @@ package service;
 import dataaccess.classes.MemoryAuthDAO;
 import dataaccess.classes.MemoryUserDAO;
 import model.AuthData;
-import server.recordClasses.*;
+import server.recordclasses.*;
 import model.UserData;
 
 public class UserService {

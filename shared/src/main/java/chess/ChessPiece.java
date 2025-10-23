@@ -53,8 +53,8 @@ public class ChessPiece {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {return true;}
+        if (o == null || getClass() != o.getClass()) {return false;}
         ChessPiece chessPiece = (ChessPiece) o;
         return (chessPiece.getTeamColor() == this.getTeamColor() && chessPiece.getPieceType() == this.getPieceType());
     }
@@ -94,9 +94,9 @@ public class ChessPiece {
             tempCol += colDir;
             tempRow += rowDir;
             int check = checkCollision(board, new ChessPosition(tempRow, tempCol));
-            if (check > 0) break;
+            if (check > 0) {break;}
             moves.add(new ChessMove(myPosition, new ChessPosition(tempRow, tempCol), null));
-            if (check == -1) break;
+            if (check == -1) {break;}
         }
     }
 
@@ -105,6 +105,44 @@ public class ChessPiece {
         moves.add(new ChessMove(pos, newPos, PieceType.ROOK));
         moves.add(new ChessMove(pos, newPos, PieceType.BISHOP));
         moves.add(new ChessMove(pos, newPos, PieceType.KNIGHT));
+    }
+
+    private Collection<ChessMove> checkPawnMoves(ChessBoard board, ChessPosition pos,  Collection<ChessMove> moves) {
+        int row, col;
+        ChessPosition newPos;
+        int colorDir;
+        if (color == ChessGame.TeamColor.WHITE) {colorDir = 1;}
+        else {colorDir = -1;}
+        row = pos.getRow();
+        col = pos.getColumn();
+        newPos = new ChessPosition(row + colorDir, col);
+        // check forward moves
+        if (checkCollision(board, newPos) == 0) {
+            if (row == 4.5 + (colorDir * 2.5)) {
+                addPromotionMoves(pos, newPos, moves);
+            }
+            else moves.add(new ChessMove(pos, newPos, null));
+            if (row == 4.5 - (colorDir * 2.5)) {
+                newPos = new ChessPosition(row + (colorDir * 2), col);
+                if (checkCollision(board, newPos) == 0) {moves.add(new ChessMove(pos, newPos, null));}
+            }
+        }
+        // check diagonal captures
+        newPos = new ChessPosition(row + colorDir, col + 1);
+        if (checkCollision(board, newPos) == -1) {
+            if (row == 4.5 + (colorDir * 2.5)) {
+                addPromotionMoves(pos, newPos, moves);
+            }
+            else {moves.add(new ChessMove(pos, newPos, null));}
+        }
+        newPos = new ChessPosition(row + colorDir, col - 1);
+        if (checkCollision(board, newPos) == -1) {
+            if (row == 4.5 + (colorDir * 2.5)) {
+                addPromotionMoves(pos, newPos, moves);
+            }
+            else {moves.add(new ChessMove(pos, newPos, null));}
+        }
+        return moves;
     }
 
     /**
@@ -120,58 +158,27 @@ public class ChessPiece {
         ChessPosition newPos;
         switch(type) {
             case PieceType.PAWN:
-                int colorDir;
-                if (color == ChessGame.TeamColor.WHITE) {colorDir = 1;}
-                else {colorDir = -1;}
-                row = pos.getRow();
-                col = pos.getColumn();
-                newPos = new ChessPosition(row + colorDir, col);
-                // check forward moves
-                if (checkCollision(board, newPos) == 0) {
-                    if (row == 4.5 + (colorDir * 2.5)) {
-                        addPromotionMoves(pos, newPos, moves);
-                    }
-                    else moves.add(new ChessMove(pos, newPos, null));
-                    if (row == 4.5 - (colorDir * 2.5)) {
-                        newPos = new ChessPosition(row + (colorDir * 2), col);
-                        if (checkCollision(board, newPos) == 0) moves.add(new ChessMove(pos, newPos, null));
-                    }
-                }
-                // check diagonal captures
-                newPos = new ChessPosition(row + colorDir, col + 1);
-                if (checkCollision(board, newPos) == -1) {
-                    if (row == 4.5 + (colorDir * 2.5)) {
-                        addPromotionMoves(pos, newPos, moves);
-                    }
-                    else moves.add(new ChessMove(pos, newPos, null));
-                }
-                newPos = new ChessPosition(row + colorDir, col - 1);
-                if (checkCollision(board, newPos) == -1) {
-                    if (row == 4.5 + (colorDir * 2.5)) {
-                        addPromotionMoves(pos, newPos, moves);
-                    }
-                    else moves.add(new ChessMove(pos, newPos, null));
-                }
+                moves = checkPawnMoves(board, pos, moves);
                 break;
             case PieceType.KNIGHT:
                 row = pos.getRow();
                 col = pos.getColumn();
                 newPos = new ChessPosition(row + 2, col + 1);
-                if (checkCollision(board, newPos) <= 0) moves.add(new ChessMove(pos, newPos, null));
+                if (checkCollision(board, newPos) <= 0) {moves.add(new ChessMove(pos, newPos, null));}
                 newPos = new ChessPosition(row + 2, col - 1);
-                if (checkCollision(board, newPos) <= 0) moves.add(new ChessMove(pos, newPos, null));
+                if (checkCollision(board, newPos) <= 0) {moves.add(new ChessMove(pos, newPos, null));}
                 newPos = new ChessPosition(row - 2, col + 1);
-                if (checkCollision(board, newPos) <= 0) moves.add(new ChessMove(pos, newPos, null));
+                if (checkCollision(board, newPos) <= 0) {moves.add(new ChessMove(pos, newPos, null));}
                 newPos = new ChessPosition(row - 2, col - 1);
-                if (checkCollision(board, newPos) <= 0) moves.add(new ChessMove(pos, newPos, null));
+                if (checkCollision(board, newPos) <= 0) {moves.add(new ChessMove(pos, newPos, null));}
                 newPos = new ChessPosition(row + 1, col + 2);
-                if (checkCollision(board, newPos) <= 0) moves.add(new ChessMove(pos, newPos, null));
+                if (checkCollision(board, newPos) <= 0) {moves.add(new ChessMove(pos, newPos, null));}
                 newPos = new ChessPosition(row - 1, col + 2);
-                if (checkCollision(board, newPos) <= 0) moves.add(new ChessMove(pos, newPos, null));
+                if (checkCollision(board, newPos) <= 0) {moves.add(new ChessMove(pos, newPos, null));}
                 newPos = new ChessPosition(row + 1, col - 2);
-                if (checkCollision(board, newPos) <= 0) moves.add(new ChessMove(pos, newPos, null));
+                if (checkCollision(board, newPos) <= 0) {moves.add(new ChessMove(pos, newPos, null));}
                 newPos = new ChessPosition(row - 1, col - 2);
-                if (checkCollision(board, newPos) <= 0) moves.add(new ChessMove(pos, newPos, null));
+                if (checkCollision(board, newPos) <= 0) {moves.add(new ChessMove(pos, newPos, null));}
                 break;
             case PieceType.BISHOP:
                 checkDirection(board, pos, 1, 1, moves);
@@ -199,56 +206,21 @@ public class ChessPiece {
                 row = pos.getRow();
                 col = pos.getColumn();
                 newPos = new ChessPosition(row + 1, col);
-                if (checkCollision(board, newPos) <= 0) moves.add(new ChessMove(pos, newPos, null));
+                if (checkCollision(board, newPos) <= 0) {moves.add(new ChessMove(pos, newPos, null));}
                 newPos = new ChessPosition(row - 1, col);
-                if (checkCollision(board, newPos) <= 0) moves.add(new ChessMove(pos, newPos, null));
+                if (checkCollision(board, newPos) <= 0) {moves.add(new ChessMove(pos, newPos, null));}
                 newPos = new ChessPosition(row, col + 1);
-                if (checkCollision(board, newPos) <= 0) moves.add(new ChessMove(pos, newPos, null));
+                if (checkCollision(board, newPos) <= 0) {moves.add(new ChessMove(pos, newPos, null));}
                 newPos = new ChessPosition(row, col - 1);
-                if (checkCollision(board, newPos) <= 0) moves.add(new ChessMove(pos, newPos, null));
+                if (checkCollision(board, newPos) <= 0) {moves.add(new ChessMove(pos, newPos, null));}
                 newPos = new ChessPosition(row + 1, col + 1);
-                if (checkCollision(board, newPos) <= 0) moves.add(new ChessMove(pos, newPos, null));
+                if (checkCollision(board, newPos) <= 0) {moves.add(new ChessMove(pos, newPos, null));}
                 newPos = new ChessPosition(row + 1, col - 1);
-                if (checkCollision(board, newPos) <= 0) moves.add(new ChessMove(pos, newPos, null));
+                if (checkCollision(board, newPos) <= 0) {moves.add(new ChessMove(pos, newPos, null));}
                 newPos = new ChessPosition(row - 1, col + 1);
-                if (checkCollision(board, newPos) <= 0) moves.add(new ChessMove(pos, newPos, null));
+                if (checkCollision(board, newPos) <= 0) {moves.add(new ChessMove(pos, newPos, null));}
                 newPos = new ChessPosition(row - 1, col - 1);
-                if (checkCollision(board, newPos) <= 0) moves.add(new ChessMove(pos, newPos, null));
-                //castling
-                if (row == 1 && col == 5 && getTeamColor() == ChessGame.TeamColor.WHITE &&
-                        board.getPiece(new ChessPosition(1,2)) == null &&
-                        board.getPiece(new ChessPosition(1,3)) == null &&
-                        board.getPiece(new ChessPosition(1,4)) == null &&
-                        board.getPiece(new ChessPosition(1,1)) != null &&
-                        board.getPiece(new ChessPosition(1,1)).getPieceType() == PieceType.ROOK &&
-                        board.getPiece(new ChessPosition(1,1)).getTeamColor() == ChessGame.TeamColor.WHITE) {
-                    moves.add(new ChessMove(pos, new ChessPosition(1, 3), null));
-                }
-                if (row == 1 && col == 5 && getTeamColor() == ChessGame.TeamColor.WHITE &&
-                        board.getPiece(new ChessPosition(1,6)) == null &&
-                        board.getPiece(new ChessPosition(1,7)) == null &&
-                        board.getPiece(new ChessPosition(1,8)) != null &&
-                        board.getPiece(new ChessPosition(1,8)).getPieceType() == PieceType.ROOK &&
-                        board.getPiece(new ChessPosition(1,8)).getTeamColor() == ChessGame.TeamColor.WHITE) {
-                    moves.add(new ChessMove(pos, new ChessPosition(1, 7), null));
-                }
-                if (row == 8 && col == 5 && getTeamColor() == ChessGame.TeamColor.BLACK &&
-                        board.getPiece(new ChessPosition(8,2)) == null &&
-                        board.getPiece(new ChessPosition(8,3)) == null &&
-                        board.getPiece(new ChessPosition(8,4)) == null &&
-                        board.getPiece(new ChessPosition(8,1)) != null &&
-                        board.getPiece(new ChessPosition(8,1)).getPieceType() == PieceType.ROOK &&
-                        board.getPiece(new ChessPosition(8,1)).getTeamColor() == ChessGame.TeamColor.BLACK) {
-                    moves.add(new ChessMove(pos, new ChessPosition(8, 3), null));
-                }
-                if (row == 8 && col == 5 && getTeamColor() == ChessGame.TeamColor.BLACK &&
-                        board.getPiece(new ChessPosition(8,6)) == null &&
-                        board.getPiece(new ChessPosition(8,7)) == null &&
-                        board.getPiece(new ChessPosition(8,8)) != null &&
-                        board.getPiece(new ChessPosition(8,8)).getPieceType() == PieceType.ROOK &&
-                        board.getPiece(new ChessPosition(8,8)).getTeamColor() == ChessGame.TeamColor.BLACK) {
-                    moves.add(new ChessMove(pos, new ChessPosition(8, 7), null));
-                }
+                if (checkCollision(board, newPos) <= 0) {moves.add(new ChessMove(pos, newPos, null));}
                 break;
             default:
                 throw new IllegalStateException("Unexpected value: " + board.getPiece(pos));

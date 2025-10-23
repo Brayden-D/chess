@@ -1,4 +1,4 @@
-package server.recordClasses;
+package server.recordclasses;
 
 import chess.ChessGame;
 
