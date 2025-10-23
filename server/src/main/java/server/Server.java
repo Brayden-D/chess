@@ -1,5 +1,6 @@
 package server;
 
+import chess.ChessGame;
 import io.javalin.*;
 import io.javalin.http.Context;
 import io.javalin.json.JavalinGson;
@@ -10,6 +11,7 @@ import service.GameService;
 import service.UserService;
 import model.*;
 
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.Objects;
 
@@ -37,6 +39,12 @@ public class Server {
 
         // CreateGame endpoint
         server.post("/game", this::createGame);
+
+        // JoinGame endpoint
+        server.put("/game", this::joinGame);
+
+        // ListGames endpoint
+        server.get("/game", this::listGames);
     }
 
     private void delete(Context ctx) {
@@ -86,6 +94,9 @@ public class Server {
             if (Objects.equals(e.getMessage(), "Error: unauthorized")) {
                 ctx.status(401);
                 ctx.json(Map.of("message", "Error: unauthorized"));
+            } else if (Objects.equals(e.getMessage(), "Error: Bad Request")) {
+                ctx.status(401);
+                ctx.json(Map.of("message", "Error: Bad Request"));
             } else {
                 ctx.status(500);
                 ctx.json(Map.of("message", "Internal server error"));
@@ -115,10 +126,69 @@ public class Server {
             String authToken = ctx.header("authorization");
             GameData gameData = ctx.bodyAsClass(GameData.class);
 
+            if (gameData.gameName() == null) {
+                ctx.status(400);
+                ctx.json(Map.of("message", "Error: Bad Request"));
+                return;
+            }
+
             GameService gameService = new GameService();
             GameData newGame = gameService.createGame(gameData.gameName(), authToken);
 
             ctx.json(Map.of("gameID", newGame.gameID())).status(200);
+
+        } catch (Exception e) {
+            if (Objects.equals(e.getMessage(), "Error: unauthorized")) {
+                ctx.status(401);
+                ctx.json(Map.of("message", "Error: unauthorized"));
+            } else {
+                ctx.status(500);
+                ctx.json(Map.of("message", "Internal server error"));
+            }
+        }
+    }
+
+    public void joinGame(Context ctx) {
+        try {
+            String authToken = ctx.header("authorization");
+            JoinData joinData = ctx.bodyAsClass(JoinData.class);
+
+            if (joinData.playerColor() != ChessGame.TeamColor.WHITE && joinData.playerColor() != ChessGame.TeamColor.BLACK) {
+                ctx.status(400);
+                ctx.json(Map.of("message", "Error: Bad Request"));
+                return;
+            }
+
+            GameService gameService = new GameService();
+            gameService.joinGame(joinData, authToken);
+            ctx.status(200);
+
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            if (Objects.equals(e.getMessage(), "Error: Game ID not found")) {
+                ctx.status(400);
+                ctx.json(Map.of("message", e.getMessage()));
+            } else if (Objects.equals(e.getMessage(), "Error: unauthorized")) {
+                ctx.status(401);
+                ctx.json(Map.of("message", e.getMessage()));
+            } else if (Objects.equals(e.getMessage(), "Error: already taken")) {
+                ctx.status(403);
+                ctx.json(Map.of("message", e.getMessage()));
+            } else {
+                ctx.status(500);
+                ctx.json(Map.of("message", e.getMessage()));
+            }
+        }
+    }
+
+    public void listGames(Context ctx) {
+        try {
+            String authToken = ctx.header("authorization");
+
+            GameService gameService = new GameService();
+            ArrayList<GameData> gameList = gameService.listGames(authToken);
+
+            ctx.json(Map.of("games", gameList)).status(200);
 
         } catch (Exception e) {
             if (Objects.equals(e.getMessage(), "Error: unauthorized")) {

@@ -72,7 +72,7 @@ public class MemoryGameDAO implements GameDAO {
         return new ArrayList<>(loadGames());
     }
 
-    public GameData setPlayer(int gameID, ChessGame.TeamColor color) {
+    public GameData setPlayer(int gameID, ChessGame.TeamColor color, String username) {
         List<GameData> games = loadGames();
 
         for (int i = 0; i < games.size(); i++) {
@@ -80,11 +80,11 @@ public class MemoryGameDAO implements GameDAO {
             if (g.gameID() == gameID) {
                 GameData updated;
                 if (color == ChessGame.TeamColor.WHITE && g.whiteUsername() == null) {
-                    updated = new GameData(g.gameID(), "whitePlayer", g.blackUsername(), g.gameName(), g.game());
+                    updated = new GameData(g.gameID(), username, g.blackUsername(), g.gameName(), g.game());
                 } else if (color == ChessGame.TeamColor.BLACK && g.blackUsername() == null) {
-                    updated = new GameData(g.gameID(), g.whiteUsername(), "blackPlayer", g.gameName(), g.game());
+                    updated = new GameData(g.gameID(), g.whiteUsername(), username, g.gameName(), g.game());
                 } else {
-                    throw new RuntimeException("Color already taken or invalid");
+                    throw new RuntimeException("Error: already taken");
                 }
 
                 games.set(i, updated);
@@ -93,7 +93,7 @@ public class MemoryGameDAO implements GameDAO {
             }
         }
 
-        throw new RuntimeException("Game ID not found");
+        throw new RuntimeException("Error: Game ID not found");
     }
     public void clear() {
         try {

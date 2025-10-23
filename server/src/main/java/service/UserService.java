@@ -24,6 +24,7 @@ public class UserService {
         MemoryUserDAO userDAO = new MemoryUserDAO();
         MemoryAuthDAO authDAO = new MemoryAuthDAO();
         UserData user = userDAO.findUser(username);
+
         if (user == null) {
             throw new RuntimeException("Error: Bad Request");
         }

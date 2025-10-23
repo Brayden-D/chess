@@ -1,1 +1,1 @@
-ExistingUser,existingUserPassword,eu@mail.com
+ClearMe,cleared,clear@mail.com
