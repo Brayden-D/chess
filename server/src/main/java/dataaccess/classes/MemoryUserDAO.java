@@ -10,7 +10,7 @@ import java.nio.file.*;
 
 public class MemoryUserDAO implements UserDAO {
 
-    private static final String FILE_PATH = "src/main/java/tempDatabase/users.txt";
+    private static final String FILE_PATH = "tempDatabase/users.txt";
 
     public void create(UserData userData) {
         try {

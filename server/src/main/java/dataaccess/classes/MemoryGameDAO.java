@@ -13,7 +13,7 @@ import java.util.*;
 
 public class MemoryGameDAO implements GameDAO {
 
-    private static final String FILE_PATH = "src/main/java/tempDatabase/games.json";
+    private static final String FILE_PATH = "tempDatabase/games.json";
     private final Gson gson = new Gson();
 
     // ---------- Helper Methods ----------

@@ -10,7 +10,7 @@ import java.util.UUID;
 
 public class MemoryAuthDAO implements AuthDAO {
 
-    private static final String FILE_PATH = "src/main/java/tempDatabase/loggedIn.txt";
+    private static final String FILE_PATH = "tempDatabase/loggedIn.txt";
 
     /*
     public AuthData getAuthData(String username) {
