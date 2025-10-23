@@ -13,8 +13,31 @@ import java.util.*;
 
 public class MemoryGameDAO implements GameDAO {
 
-    private static final String FILE_PATH = "tempDatabase/games.json";
+    private static final String BASE_PATH = "server/tempDatabase";
+    private static final String FILE_PATH = BASE_PATH + "/games.json";
     private final Gson gson = new Gson();
+
+    public MemoryGameDAO() {
+        try {
+            initializeFiles();
+        } catch (IOException e) {
+            System.err.println("Error initializing games.json: " + e.getMessage());
+        }
+    }
+
+    private void initializeFiles() throws IOException {
+        // Ensure directory exists
+        Path baseDir = Paths.get(BASE_PATH);
+        if (!Files.exists(baseDir)) {
+            Files.createDirectories(baseDir);
+        }
+
+        // Ensure games.json exists and starts as []
+        Path path = Paths.get(FILE_PATH);
+        if (!Files.exists(path)) {
+            Files.writeString(path, "[]", StandardOpenOption.CREATE);
+        }
+    }
 
     // ---------- Helper Methods ----------
 
@@ -95,13 +118,11 @@ public class MemoryGameDAO implements GameDAO {
 
         throw new RuntimeException("Error: Game ID not found");
     }
+
     public void clear() {
         try {
-            Path path = Path.of(FILE_PATH);
-            Files.deleteIfExists(path); // delete old file
-            Files.createFile(path);     // recreate it empty
+            Files.writeString(Paths.get(FILE_PATH), "[]");
         } catch (IOException ignored) {
-
         }
     }
 }
