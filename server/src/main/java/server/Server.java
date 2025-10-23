@@ -6,6 +6,7 @@ import io.javalin.json.JavalinGson;
 import org.eclipse.jetty.security.LoginService;
 import server.recordClasses.*;
 import service.DeleteService;
+import service.GameService;
 import service.UserService;
 import model.*;
 
@@ -33,6 +34,9 @@ public class Server {
 
         // Logout endpoint
         server.delete("/session", this::logout);
+
+        // CreateGame endpoint
+        server.post("/game", this::createGame);
     }
 
     private void delete(Context ctx) {
@@ -95,6 +99,27 @@ public class Server {
             UserService logoutService = new UserService();
             DeleteResult loginResult = logoutService.logout(authToken);
             ctx.json(loginResult).status(200);
+        } catch (Exception e) {
+            if (Objects.equals(e.getMessage(), "Error: unauthorized")) {
+                ctx.status(401);
+                ctx.json(Map.of("message", "Error: unauthorized"));
+            } else {
+                ctx.status(500);
+                ctx.json(Map.of("message", "Internal server error"));
+            }
+        }
+    }
+
+    private void createGame(Context ctx) {
+        try {
+            String authToken = ctx.header("authorization");
+            GameData gameData = ctx.bodyAsClass(GameData.class);
+
+            GameService gameService = new GameService();
+            GameData newGame = gameService.createGame(gameData.gameName(), authToken);
+
+            ctx.json(Map.of("gameID", newGame.gameID())).status(200);
+
         } catch (Exception e) {
             if (Objects.equals(e.getMessage(), "Error: unauthorized")) {
                 ctx.status(401);

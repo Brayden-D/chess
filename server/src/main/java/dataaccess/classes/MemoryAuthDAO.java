@@ -68,4 +68,19 @@ public class MemoryAuthDAO implements AuthDAO {
         Files.write(path, lines);
     }
 
+    public boolean authTokenExists(String authToken) {
+        try {
+            List<String> lines = Files.readAllLines(Paths.get(FILE_PATH));
+            for (String line : lines) {
+                String[] parts = line.split(",");
+                if (parts.length == 2 && parts[1].equals(authToken)) {
+                    return true;
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
 }
