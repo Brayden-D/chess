@@ -12,23 +12,6 @@ public class MemoryAuthDAO implements AuthDAO {
 
     private static final String FILE_PATH = "tempDatabase/loggedIn.txt";
 
-    /*
-    public AuthData getAuthData(String username) {
-        try {
-            List<String> lines = Files.readAllLines(Paths.get(FILE_PATH));
-            for (String line : lines) {
-                String[] parts = line.split(",");
-                if (parts.length == 2 && parts[0].equals(username)) {
-                    return new AuthData(parts[0], parts[1]);
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null; // Not found
-    }
-    */
-
     public void clear() {
         try {
             Path path = Path.of(FILE_PATH);

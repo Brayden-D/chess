@@ -144,10 +144,10 @@ public class Server {
             if (isAuthError(e)) {
                 ctx.status(401);
                 ctx.json(Map.of("message", "Error: unauthorized"));
-            } else {
-                ctx.status(500);
-                ctx.json(Map.of("message", "Internal server error"));
+                return;
             }
+            ctx.status(500);
+            ctx.json(Map.of("message", "Internal server error"));
         }
     }
 

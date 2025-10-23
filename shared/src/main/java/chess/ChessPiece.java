@@ -121,7 +121,7 @@ public class ChessPiece {
             if (row == 4.5 + (colorDir * 2.5)) {
                 addPromotionMoves(pos, newPos, moves);
             }
-            else moves.add(new ChessMove(pos, newPos, null));
+            else {moves.add(new ChessMove(pos, newPos, null));}
             if (row == 4.5 - (colorDir * 2.5)) {
                 newPos = new ChessPosition(row + (colorDir * 2), col);
                 if (checkCollision(board, newPos) == 0) {moves.add(new ChessMove(pos, newPos, null));}
