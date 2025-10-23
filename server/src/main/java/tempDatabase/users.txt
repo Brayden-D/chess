@@ -1,1 +1,1 @@
-ClearMe,cleared,clear@mail.com
+user1,password,user1@gmail.com
