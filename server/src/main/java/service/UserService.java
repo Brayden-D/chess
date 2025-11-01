@@ -4,6 +4,7 @@ package service;
 import dataaccess.classes.SQLAuthDAO;
 import dataaccess.classes.SQLUserDAO;
 import model.AuthData;
+import org.mindrot.jbcrypt.BCrypt;
 import server.recordclasses.*;
 import model.UserData;
 
@@ -28,7 +29,7 @@ public class UserService {
         if (user == null) {
             throw new RuntimeException("Error: Bad Request");
         }
-        if (!user.password().equals(password)) {
+        if (!BCrypt.checkpw(password, user.password())) {
             throw new RuntimeException("Error: unauthorized");
         }
         return authDAO.createAuthData(username);
