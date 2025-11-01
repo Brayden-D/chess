@@ -6,6 +6,7 @@ public class Main {
         String basePath = "server\\tempDatabase";
         String[] files = {"users.txt", "games.json", "loggedIn.txt"};
 
+/*
         File dir = new File(basePath);
         if (!dir.exists()) {
             if (dir.mkdirs()) {
@@ -25,6 +26,7 @@ public class Main {
                 System.err.println("Error creating file " + fileName + ": " + e.getMessage());
             }
         }
+ */
 
         Server server = new Server();
         server.run(8080);

@@ -1,9 +1,5 @@
 package dataaccess;
 
-import io.javalin.http.NotImplementedResponse;
-import kotlin.NotImplementedError;
-import org.mindrot.jbcrypt.BCrypt;
-
 import java.sql.*;
 import java.util.Properties;
 
@@ -12,8 +8,6 @@ public class DatabaseManager {
     private static String dbUsername;
     private static String dbPassword;
     private static String connectionUrl;
-
-
 
     /*
      * Load the database information for the db.properties file.
@@ -33,39 +27,6 @@ public class DatabaseManager {
         } catch (SQLException ex) {
             throw new DataAccessException("failed to create database", ex);
         }
-        String dbUrl = connectionUrl + "/" + databaseName;
-        try (var conn = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
-             var stmt = conn.createStatement()) {
-
-            // --- Create users table ---
-            stmt.executeUpdate("""
-                CREATE TABLE IF NOT EXISTS users (
-                    username VARCHAR(255) PRIMARY KEY,
-                    password VARCHAR(255) NOT NULL,
-                    email VARCHAR(255) UNIQUE NOT NULL
-                );
-            """);
-
-            // --- Create auth table ---
-            stmt.executeUpdate("""
-                CREATE TABLE IF NOT EXISTS auth (
-                    token VARCHAR(255) PRIMARY KEY,
-                    username VARCHAR(255) NOT NULL,
-                    FOREIGN KEY (username) REFERENCES users(username)
-                        ON DELETE CASCADE
-                );
-            """);
-
-            // --- Create games table ---
-            stmt.executeUpdate("""
-                CREATE TABLE IF NOT EXISTS games (
-                    id INT AUTO_INCREMENT PRIMARY KEY,
-                    game_json JSON NOT NULL
-                );
-            """);
-        } catch (SQLException ex) {
-            throw new DataAccessException("failed to create tables", ex);
-        }
     }
 
     /**
@@ -80,7 +41,7 @@ public class DatabaseManager {
      * }
      * </code>
      */
-    public static Connection getConnection() throws DataAccessException {
+    static Connection getConnection() throws DataAccessException {
         try {
             //do not wrap the following line with a try-with-resources
             var conn = DriverManager.getConnection(connectionUrl, dbUsername, dbPassword);
@@ -113,6 +74,4 @@ public class DatabaseManager {
         var port = Integer.parseInt(props.getProperty("db.port"));
         connectionUrl = String.format("jdbc:mysql://%s:%d", host, port);
     }
-
-
 }

@@ -1,16 +1,16 @@
 package service;
 
 
-import dataaccess.classes.MemoryAuthDAO;
-import dataaccess.classes.MemoryUserDAO;
+import dataaccess.classes.SQLAuthDAO;
+import dataaccess.classes.SQLUserDAO;
 import model.AuthData;
 import server.recordclasses.*;
 import model.UserData;
 
 public class UserService {
     public RegisterResult register(UserData data) {
-        MemoryUserDAO userDAO = new MemoryUserDAO();
-        MemoryAuthDAO authDAO = new MemoryAuthDAO();
+        SQLUserDAO userDAO = new SQLUserDAO();
+        SQLAuthDAO authDAO = new SQLAuthDAO();
         if (userDAO.findUser(data.username()) != null) {
             throw new RuntimeException("Error: username already taken");
         }
@@ -21,8 +21,8 @@ public class UserService {
     }
 
     public AuthData login(String username, String password) {
-        MemoryUserDAO userDAO = new MemoryUserDAO();
-        MemoryAuthDAO authDAO = new MemoryAuthDAO();
+        SQLUserDAO userDAO = new SQLUserDAO();
+        SQLAuthDAO authDAO = new SQLAuthDAO();
         UserData user = userDAO.findUser(username);
 
         if (user == null) {
@@ -35,7 +35,7 @@ public class UserService {
     }
 
     public DeleteResult logout(String authToken) {
-        MemoryAuthDAO authDAO = new MemoryAuthDAO();
+        SQLAuthDAO authDAO = new SQLAuthDAO();
         try {
             authDAO.deleteAuth(authToken);
             return new DeleteResult(true);
