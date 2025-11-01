@@ -1,6 +1,7 @@
 package service;
 
 
+import dataaccess.DataAccessException;
 import dataaccess.classes.SQLAuthDAO;
 import dataaccess.classes.SQLUserDAO;
 import model.AuthData;
@@ -38,12 +39,15 @@ public class UserService {
     public DeleteResult logout(String authToken) {
         SQLAuthDAO authDAO = new SQLAuthDAO();
         try {
-            authDAO.deleteAuth(authToken);
+            if (!authDAO.authTokenExists(authToken)) {
+                throw new RuntimeException("Error: unauthorized");
+            }
+
+            authDAO.deleteAuth(authToken); // delete it if it exists
             return new DeleteResult(true);
 
-        }
-        catch (Exception e) {
-            throw new RuntimeException("Error: unauthorized");
+        } catch (DataAccessException e) {
+            throw new RuntimeException("Error: unauthorized", e);
         }
     }
 
