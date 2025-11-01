@@ -3,6 +3,8 @@ package service;
 
 import dataaccess.classes.MemoryAuthDAO;
 import dataaccess.classes.MemoryGameDAO;
+import dataaccess.classes.SQLAuthDAO;
+import dataaccess.classes.SQLGameDAO;
 import model.GameData;
 import server.recordclasses.JoinData;
 
@@ -10,8 +12,8 @@ import java.util.ArrayList;
 
 public class GameService {
     public GameData createGame(String gameName, String authToken) {
-        MemoryGameDAO gameDAO = new MemoryGameDAO();
-        MemoryAuthDAO authDAO = new MemoryAuthDAO();
+        SQLGameDAO gameDAO = new SQLGameDAO();
+        SQLAuthDAO authDAO = new SQLAuthDAO();
         if (authDAO.authTokenExists(authToken)) {
             return gameDAO.createGame(gameName);
         }
@@ -19,7 +21,7 @@ public class GameService {
     }
 
     public ArrayList<GameData> listGames(String authToken) {
-        MemoryGameDAO gameDAO = new MemoryGameDAO();
+        SQLGameDAO gameDAO = new SQLGameDAO();
         MemoryAuthDAO authDAO = new MemoryAuthDAO();
         if (authDAO.authTokenExists(authToken)) {
             return gameDAO.findGames();
@@ -28,8 +30,8 @@ public class GameService {
     }
 
     public void joinGame(JoinData data, String authToken) {
-        MemoryGameDAO gameDAO = new MemoryGameDAO();
-        MemoryAuthDAO authDAO = new MemoryAuthDAO();
+        SQLGameDAO gameDAO = new SQLGameDAO();
+        SQLAuthDAO authDAO = new SQLAuthDAO();
         if (authDAO.authTokenExists(authToken)) {
             gameDAO.setPlayer(data.gameID(), data.playerColor(), authDAO.getUsername(authToken));
             return;

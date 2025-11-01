@@ -7,7 +7,7 @@ public class DeleteService {
     public DeleteResult deleteAll() {
         SQLUserDAO userDAO = new SQLUserDAO();
         SQLAuthDAO authDAO = new SQLAuthDAO();
-        MemoryGameDAO gameDAO = new MemoryGameDAO();
+        SQLGameDAO gameDAO = new SQLGameDAO();
         userDAO.clear();
         authDAO.clear();
         gameDAO.clear();
