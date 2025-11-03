@@ -23,7 +23,7 @@ public class SQLGameDAO implements GameDAO {
         String gameJson = gson.toJson(newGameData);
 
         try (Connection conn = DatabaseManager.getConnection();
-            PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
             stmt.setString(1, gameJson);
             stmt.executeUpdate();
@@ -70,8 +70,54 @@ public class SQLGameDAO implements GameDAO {
     }
 
     public GameData setPlayer(int gameID, ChessGame.TeamColor color, String username) {
-        return null;
+        GameData updateData;
+        String getGame = "SELECT game_json FROM games WHERE id = ?";
+        String setPlayer = "UPDATE games SET game_json = ? WHERE id = ?";
+
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(getGame)) {
+
+            stmt.setInt(1, gameID);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (!rs.next()) {
+                    throw new RuntimeException("Game not found");
+                }
+                updateData = gson.fromJson(rs.getString("game_json"), GameData.class);
+            }
+
+            if (color == ChessGame.TeamColor.WHITE && updateData.whiteUsername() == null) {
+                updateData = new GameData(
+                        updateData.gameID(),
+                        username,
+                        updateData.blackUsername(),
+                        updateData.gameName(),
+                        updateData.game()
+                );
+            } else if (color == ChessGame.TeamColor.BLACK && updateData.blackUsername() == null) {
+                updateData = new GameData(
+                        updateData.gameID(),
+                        updateData.whiteUsername(),
+                        username,
+                        updateData.gameName(),
+                        updateData.game()
+                );
+            } else {
+                throw new RuntimeException("Invalid color or color already taken");
+            }
+
+            try (PreparedStatement updateStmt = conn.prepareStatement(setPlayer)) {
+                updateStmt.setString(1, gson.toJson(updateData));
+                updateStmt.setInt(2, updateData.gameID());
+                updateStmt.executeUpdate();
+            }
+
+            return updateData;
+
+        } catch (SQLException | DataAccessException e) {
+            throw new RuntimeException("Error setting player", e);
+        }
     }
+
 
     public void clear() {
         try (Connection conn = DatabaseManager.getConnection();
