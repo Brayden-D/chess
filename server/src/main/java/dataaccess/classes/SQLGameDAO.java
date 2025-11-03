@@ -50,7 +50,23 @@ public class SQLGameDAO implements GameDAO {
 
     public ArrayList<GameData> findGames() {
         ArrayList<GameData> games = new ArrayList<>();
-        String sql = "SELECT * FROM games";
+        String sql = "SELECT id, game_json FROM games";
+
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                String gameJson = rs.getString("game_json");
+                GameData game = gson.fromJson(gameJson, GameData.class);
+                games.add(game);
+            }
+
+        } catch (SQLException | DataAccessException e) {
+            throw new RuntimeException("Error retrieving games", e);
+        }
+
+        return games;
     }
 
     public GameData setPlayer(int gameID, ChessGame.TeamColor color, String username) {

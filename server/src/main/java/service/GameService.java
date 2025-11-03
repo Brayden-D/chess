@@ -22,7 +22,7 @@ public class GameService {
 
     public ArrayList<GameData> listGames(String authToken) {
         SQLGameDAO gameDAO = new SQLGameDAO();
-        MemoryAuthDAO authDAO = new MemoryAuthDAO();
+        SQLAuthDAO authDAO = new SQLAuthDAO();
         if (authDAO.authTokenExists(authToken)) {
             return gameDAO.findGames();
         }
