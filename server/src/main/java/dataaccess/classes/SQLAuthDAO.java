@@ -87,7 +87,7 @@ public class SQLAuthDAO implements AuthDAO {
         return null;
     }
 
-    public boolean authTokenExists(String authToken) {
+    public boolean authTokenExists(String authToken) throws DataAccessException {
         String sql = "SELECT 1 FROM auth WHERE token = ?";
 
         try (Connection conn = DatabaseManager.getConnection();
@@ -96,12 +96,12 @@ public class SQLAuthDAO implements AuthDAO {
             stmt.setString(1, authToken);
 
             try (ResultSet rs = stmt.executeQuery()) {
-                return rs.next(); // true if at least one record exists
+                return rs.next();
             }
 
-        } catch (Exception ignored) {
+        } catch (SQLException | DataAccessException e) {
+            throw new DataAccessException("Error checking auth token existence", e);
         }
-        return false;
     }
 
 }

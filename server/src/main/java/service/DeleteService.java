@@ -3,6 +3,8 @@ package service;
 import dataaccess.classes.*;
 import server.recordclasses.DeleteResult;
 
+import java.sql.SQLException;
+
 public class DeleteService {
     public DeleteResult deleteAll() {
         SQLUserDAO userDAO = new SQLUserDAO();

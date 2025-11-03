@@ -39,7 +39,7 @@ public class SQLGameDAO implements GameDAO {
 
                     return dataWithID;
                 } else {
-                    throw new RuntimeException("Failed to retrieve generated game ID");
+                    throw new RuntimeException("Error: Failed to retrieve generated game ID");
                 }
             }
 
@@ -70,6 +70,10 @@ public class SQLGameDAO implements GameDAO {
     }
 
     public GameData setPlayer(int gameID, ChessGame.TeamColor color, String username) {
+        if (color == null) {
+            throw new RuntimeException("Error: Invalid color");
+        }
+
         GameData updateData;
         String getGame = "SELECT game_json FROM games WHERE id = ?";
         String setPlayer = "UPDATE games SET game_json = ? WHERE id = ?";
@@ -80,12 +84,16 @@ public class SQLGameDAO implements GameDAO {
             stmt.setInt(1, gameID);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (!rs.next()) {
-                    throw new RuntimeException("Game not found");
+                    throw new RuntimeException("Error: Game ID not found");
                 }
                 updateData = gson.fromJson(rs.getString("game_json"), GameData.class);
             }
 
-            if (color == ChessGame.TeamColor.WHITE && updateData.whiteUsername() == null) {
+            // validate and set player
+            if (color == ChessGame.TeamColor.WHITE) {
+                if (updateData.whiteUsername() != null) {
+                    throw new RuntimeException("Error: already taken");
+                }
                 updateData = new GameData(
                         updateData.gameID(),
                         username,
@@ -93,7 +101,10 @@ public class SQLGameDAO implements GameDAO {
                         updateData.gameName(),
                         updateData.game()
                 );
-            } else if (color == ChessGame.TeamColor.BLACK && updateData.blackUsername() == null) {
+            } else if (color == ChessGame.TeamColor.BLACK) {
+                if (updateData.blackUsername() != null) {
+                    throw new RuntimeException("Error: already taken");
+                }
                 updateData = new GameData(
                         updateData.gameID(),
                         updateData.whiteUsername(),
@@ -102,9 +113,10 @@ public class SQLGameDAO implements GameDAO {
                         updateData.game()
                 );
             } else {
-                throw new RuntimeException("Invalid color or color already taken");
+                throw new RuntimeException("Error: Invalid color");
             }
 
+            // update DB
             try (PreparedStatement updateStmt = conn.prepareStatement(setPlayer)) {
                 updateStmt.setString(1, gson.toJson(updateData));
                 updateStmt.setInt(2, updateData.gameID());
@@ -126,7 +138,7 @@ public class SQLGameDAO implements GameDAO {
             stmt.executeUpdate("DELETE FROM games");
 
         } catch (SQLException | DataAccessException e) {
-            throw new RuntimeException("Failed to clear game table", e);
+            throw new RuntimeException("Error: Failed to clear game table", e);
         }
     }
 

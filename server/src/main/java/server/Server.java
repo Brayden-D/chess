@@ -44,7 +44,12 @@ public class Server {
 
         // ListGames endpoint
         server.get("/game", this::listGames);
+
+        server.exception(Exception.class, (e, ctx) -> {
+            ctx.status(500).json(Map.of("message", e.getMessage()));
+        });
     }
+
 
     private void delete(Context ctx) {
         DeleteService deleteService = new DeleteService();
@@ -76,7 +81,7 @@ public class Server {
                 ctx.json(Map.of("message", "Error: username already taken"));
             } else {
                 ctx.status(500);
-                ctx.json(Map.of("message", "Internal server error"));
+                ctx.json(Map.of("message", "Error: Internal server error"));
             }
         }
     }
@@ -97,12 +102,12 @@ public class Server {
             if (isAuthError(e)) {
                 ctx.status(401);
                 ctx.json(Map.of("message", "Error: unauthorized"));
-            } else if (Objects.equals(e.getMessage(), "Error: Bad Request")) {
+            } else if (Objects.equals(e.getMessage(), "Error: Bad Request") && ctx.status().getCode() != 500) {
                 ctx.status(401);
                 ctx.json(Map.of("message", "Error: Bad Request"));
             } else {
                 ctx.status(500);
-                ctx.json(Map.of("message", "Internal server error"));
+                ctx.json(Map.of("message", "Error: Internal server error"));
             }
         }
     }
@@ -119,7 +124,7 @@ public class Server {
                 ctx.json(Map.of("message", "Error: unauthorized"));
             } else {
                 ctx.status(500);
-                ctx.json(Map.of("message", "Internal server error"));
+                ctx.json(Map.of("message", "Error: Internal server error"));
             }
         }
     }
@@ -147,7 +152,7 @@ public class Server {
                 return;
             }
             ctx.status(500);
-            ctx.json(Map.of("message", "Internal server error"));
+            ctx.json(Map.of("message", "Error: Internal server error"));
         }
     }
 
@@ -199,7 +204,7 @@ public class Server {
                 ctx.json(Map.of("message", "Error: unauthorized"));
             } else {
                 ctx.status(500);
-                ctx.json(Map.of("message", "Internal server error"));
+                ctx.json(Map.of("message", "Error: Internal server error"));
             }
         }
     }
@@ -209,6 +214,7 @@ public class Server {
         return server.port();
     }
 
-    public void stop() {server.stop();
+    public void stop() {
+        server.stop();
     }
 }

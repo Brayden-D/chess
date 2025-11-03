@@ -13,8 +13,6 @@ public class DatabaseManager {
     private static String dbPassword;
     private static String connectionUrl;
 
-
-
     /*
      * Load the database information for the db.properties file.
      */
@@ -30,8 +28,8 @@ public class DatabaseManager {
         try (var conn = DriverManager.getConnection(connectionUrl, dbUsername, dbPassword);
              var preparedStatement = conn.prepareStatement(statement)) {
             preparedStatement.executeUpdate();
-        } catch (SQLException ex) {
-            throw new DataAccessException("failed to create database", ex);
+        } catch (SQLException e) {
+            throw new DataAccessException("Error: failed to create database", e);
         }
         String dbUrl = connectionUrl + "/" + databaseName;
         try (var conn = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
@@ -63,8 +61,8 @@ public class DatabaseManager {
                     game_json JSON NOT NULL
                 );
             """);
-        } catch (SQLException ex) {
-            throw new DataAccessException("failed to create tables", ex);
+        } catch (SQLException e) {
+            throw new DataAccessException("Error: failed to create tables", e);
         }
     }
 
@@ -82,25 +80,24 @@ public class DatabaseManager {
      */
     public static Connection getConnection() throws DataAccessException {
         try {
-            //do not wrap the following line with a try-with-resources
             var conn = DriverManager.getConnection(connectionUrl, dbUsername, dbPassword);
             conn.setCatalog(databaseName);
             return conn;
-        } catch (SQLException ex) {
-            throw new DataAccessException("failed to get connection", ex);
+        } catch (SQLException e) {
+            throw new DataAccessException("Error: failed to get connection", e);
         }
     }
 
     private static void loadPropertiesFromResources() {
         try (var propStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("db.properties")) {
             if (propStream == null) {
-                throw new Exception("Unable to load db.properties");
+                throw new Exception("Error: unable to load db.properties");
             }
             Properties props = new Properties();
             props.load(propStream);
             loadProperties(props);
-        } catch (Exception ex) {
-            throw new RuntimeException("unable to process db.properties", ex);
+        } catch (Exception e) {
+            throw new RuntimeException("Error: unable to process db.properties", e);
         }
     }
 
@@ -111,6 +108,7 @@ public class DatabaseManager {
 
         var host = props.getProperty("db.host");
         var port = Integer.parseInt(props.getProperty("db.port"));
+
         connectionUrl = String.format("jdbc:mysql://%s:%d", host, port);
     }
 

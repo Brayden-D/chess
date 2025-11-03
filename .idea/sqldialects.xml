@@ -5,5 +5,6 @@
     <file url="file://$PROJECT_DIR$/server/src/main/java/dataaccess/classes/SQLAuthDAO.java" dialect="GenericSQL" />
     <file url="file://$PROJECT_DIR$/server/src/main/java/dataaccess/classes/SQLGameDAO.java" dialect="GenericSQL" />
     <file url="file://$PROJECT_DIR$/server/src/main/java/dataaccess/classes/SQLUserDAO.java" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/server/src/test/java/passoff/server/DatabaseTests.java" dialect="GenericSQL" />
   </component>
 </project>

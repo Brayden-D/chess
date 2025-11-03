@@ -1,5 +1,6 @@
 package dataaccess.interfaces;
 
+import dataaccess.DataAccessException;
 import model.AuthData;
 
 import java.io.BufferedWriter;
@@ -21,5 +22,5 @@ public interface AuthDAO {
 
     public String getUsername(String authToken);
 
-    public boolean authTokenExists(String authToken);
+    public boolean authTokenExists(String authToken) throws DataAccessException;
 }

@@ -34,7 +34,7 @@ public class SQLUserDAO {
             stmt.executeUpdate("DELETE FROM users");
 
         } catch (SQLException | DataAccessException e) {
-            throw new RuntimeException("Failed to clear user table", e);
+            throw new RuntimeException("Error: unable to clear users", e);
         }
     }
 

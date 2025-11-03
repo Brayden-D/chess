@@ -43,11 +43,16 @@ public class UserService {
                 throw new RuntimeException("Error: unauthorized");
             }
 
-            authDAO.deleteAuth(authToken); // delete it if it exists
+            authDAO.deleteAuth(authToken);
             return new DeleteResult(true);
 
         } catch (DataAccessException e) {
-            throw new RuntimeException("Error: unauthorized", e);
+            throw new RuntimeException("Error: Database connection failed", e);
+        } catch (RuntimeException e) {
+            if ("Error: unauthorized".equals(e.getMessage())) {
+                throw e;
+            }
+            throw new RuntimeException("Error: internal server error", e);
         }
     }
 
