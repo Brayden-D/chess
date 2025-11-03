@@ -17,7 +17,7 @@ public class SQLAuthDAO implements AuthDAO {
         try {
             DatabaseManager.createDatabase();
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException("Error initializing database", e);
         }
     }
 
@@ -99,7 +99,7 @@ public class SQLAuthDAO implements AuthDAO {
                 return rs.next();
             }
 
-        } catch (SQLException | DataAccessException e) {
+        } catch (SQLException e) {
             throw new DataAccessException("Error checking auth token existence", e);
         }
     }

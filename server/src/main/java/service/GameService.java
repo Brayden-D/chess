@@ -13,40 +13,46 @@ public class GameService {
     public GameData createGame(String gameName, String authToken) {
         SQLGameDAO gameDAO = new SQLGameDAO();
         SQLAuthDAO authDAO = new SQLAuthDAO();
+
         try {
-            if (authDAO.authTokenExists(authToken)) {
-                return gameDAO.createGame(gameName);
+            if (!authDAO.authTokenExists(authToken)) {
+                throw new RuntimeException("Error: unauthorized");
             }
-            throw new RuntimeException("Error: unauthorized");
-        } catch (Exception e) {
-            throw new RuntimeException("Error: Database connection failed");
+
+            return gameDAO.createGame(gameName);
+        } catch (DataAccessException e) {
+            throw new RuntimeException("Error: internal server error", e);
         }
     }
 
     public ArrayList<GameData> listGames(String authToken) {
         SQLGameDAO gameDAO = new SQLGameDAO();
         SQLAuthDAO authDAO = new SQLAuthDAO();
+
         try {
-            if (authDAO.authTokenExists(authToken)) {
-                return gameDAO.findGames();
+            if (!authDAO.authTokenExists(authToken)) {
+                throw new RuntimeException("Error: unauthorized");
             }
-            throw new RuntimeException("Error: unauthorized");
-        } catch (Exception e) {
-            throw new RuntimeException("Error: Database connection failed");
+
+            return gameDAO.findGames();
+        } catch (DataAccessException e) {
+            throw new RuntimeException("Error: internal server error", e);
         }
     }
 
     public void joinGame(JoinData data, String authToken) {
         SQLGameDAO gameDAO = new SQLGameDAO();
         SQLAuthDAO authDAO = new SQLAuthDAO();
+
         try {
-            if (authDAO.authTokenExists(authToken)) {
-                gameDAO.setPlayer(data.gameID(), data.playerColor(), authDAO.getUsername(authToken));
-                return;
+            if (!authDAO.authTokenExists(authToken)) {
+                throw new RuntimeException("Error: unauthorized");
             }
-            throw new RuntimeException("Error: unauthorized");
-        } catch (Exception e) {
-            throw new RuntimeException("Error: Database connection failed");
+
+            String username = authDAO.getUsername(authToken);
+            gameDAO.setPlayer(data.gameID(), data.playerColor(), username);
+        } catch (DataAccessException e) {
+            throw new RuntimeException("Error: internal server error", e);
         }
     }
 }
