@@ -1,6 +1,7 @@
 package dataaccess;
 
 import dataaccess.classes.SQLAuthDAO;
+import dataaccess.classes.SQLGameDAO;
 import dataaccess.classes.SQLUserDAO;
 import model.AuthData;
 import model.UserData;
@@ -169,6 +170,27 @@ public class DAOTests {
     //
     // GameDAO tests
     //
+    @Test
+    public void clearGamesTest() {
+        SQLGameDAO gameDAO = new SQLGameDAO();
+        gameDAO.clear();
+    }
+
+    @Test
+    public void createGameTest() {
+        SQLGameDAO gameDAO = new SQLGameDAO();
+        gameDAO.clear();
+        gameDAO.createGame("test");
+    }
+
+    @Test
+    public void createGameBadInputTest() {
+        SQLGameDAO gameDAO = new SQLGameDAO();
+        gameDAO.clear();
+        Assertions.assertThrows(RuntimeException.class, () -> {
+            gameDAO.createGame(null);
+        });
+    }
 
 
 }

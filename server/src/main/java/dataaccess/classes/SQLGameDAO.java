@@ -15,6 +15,9 @@ public class SQLGameDAO implements GameDAO {
     private final Gson gson = new Gson();
 
     public GameData createGame(String gameName) {
+        if (gameName == null) {
+            throw new RuntimeException("Game name is null");
+        }
         String sql = "INSERT INTO games (game_json) VALUES (?)";
         String updateID = "UPDATE games SET game_json = ? WHERE id = ?";
         ChessGame newGame = new ChessGame();
