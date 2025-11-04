@@ -118,9 +118,7 @@ public class DAOTests {
     public void getUsernameTest() {
         userDAO.create(new UserData("user", "password", "email@example.com"));
         AuthData auth = authDAO.createAuthData("user");
-        Assertions.assertThrows(RuntimeException.class, () -> {
-            authDAO.deleteAuth(auth.authToken() + "1");
-        });
+        Assertions.assertEquals("user", authDAO.getUsername(auth.authToken()));
     }
 
     @Test
