@@ -98,7 +98,7 @@ public class DAOTests {
     }
 
     @Test
-    public void deleteAuthTestBadRequest() {
+    public void deleteAuthBadRequestTest() {
         SQLUserDAO userDAO = new SQLUserDAO();
         SQLAuthDAO authDAO = new SQLAuthDAO();
         userDAO.clear();
@@ -109,6 +109,67 @@ public class DAOTests {
             authDAO.deleteAuth(auth.authToken() + "1");
         });
     }
+
+    @Test
+    public void getUsernameTest() {
+        SQLUserDAO userDAO = new SQLUserDAO();
+        SQLAuthDAO authDAO = new SQLAuthDAO();
+        userDAO.clear();
+        authDAO.clear();
+        userDAO.create(new UserData("user", "password", "email@example.com"));
+        AuthData auth = authDAO.createAuthData("user");
+        Assertions.assertThrows(RuntimeException.class, () -> {
+            authDAO.deleteAuth(auth.authToken() + "1");
+        });
+    }
+
+    @Test
+    public void getBadUsernameTest() {
+        SQLUserDAO userDAO = new SQLUserDAO();
+        SQLAuthDAO authDAO = new SQLAuthDAO();
+        userDAO.clear();
+        authDAO.clear();
+        userDAO.create(new UserData("user", "password", "email@example.com"));
+        AuthData auth = authDAO.createAuthData("user");
+        Assertions.assertThrows(RuntimeException.class, () -> {
+            authDAO.deleteAuth(auth.authToken() + "1");
+        });
+    }
+
+    @Test
+    public void authTokenExistsTest() {
+        SQLUserDAO userDAO = new SQLUserDAO();
+        SQLAuthDAO authDAO = new SQLAuthDAO();
+        userDAO.clear();
+        authDAO.clear();
+        userDAO.create(new UserData("user", "password", "email@example.com"));
+        AuthData auth = authDAO.createAuthData("user");
+        try {
+            Assertions.assertTrue(authDAO.authTokenExists(auth.authToken()));
+        } catch (Exception e) {
+            fail();
+        }
+    }
+
+    @Test
+    public void authTokenDoesntExistTest() {
+        SQLUserDAO userDAO = new SQLUserDAO();
+        SQLAuthDAO authDAO = new SQLAuthDAO();
+        userDAO.clear();
+        authDAO.clear();
+        userDAO.create(new UserData("user", "password", "email@example.com"));
+        AuthData auth = authDAO.createAuthData("user");
+        try {
+            Assertions.assertFalse(authDAO.authTokenExists(auth.authToken() + "1"));
+        } catch (Exception e) {
+            fail();
+        }
+    }
+
+    //
+    // GameDAO tests
+    //
+
 
 }
 
