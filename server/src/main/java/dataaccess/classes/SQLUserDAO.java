@@ -11,6 +11,11 @@ import org.mindrot.jbcrypt.BCrypt;
 public class SQLUserDAO {
 
     public void create(UserData userData) {
+        if (userData == null || userData.username() == null
+        || userData.password() == null || userData.email() == null) {
+            throw new RuntimeException("User data is null");
+        }
+
         String sql = "INSERT INTO users (username, password, email) VALUES (?, ?, ?)";
 
         try (Connection conn = DatabaseManager.getConnection();

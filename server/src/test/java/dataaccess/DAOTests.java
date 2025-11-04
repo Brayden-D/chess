@@ -1,12 +1,16 @@
 package dataaccess;
 
+import chess.ChessGame;
 import dataaccess.classes.SQLAuthDAO;
 import dataaccess.classes.SQLGameDAO;
 import dataaccess.classes.SQLUserDAO;
 import model.AuthData;
+import model.GameData;
 import model.UserData;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+
+import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -34,7 +38,7 @@ public class DAOTests {
         userDAO.clear();
         Assertions.assertThrows(Exception.class,
                 () -> {userDAO.create(new UserData("user", null, "user@mail.com"));
-                });
+        });
     }
 
     @Test
@@ -189,6 +193,54 @@ public class DAOTests {
         gameDAO.clear();
         Assertions.assertThrows(RuntimeException.class, () -> {
             gameDAO.createGame(null);
+        });
+    }
+
+    @Test
+    public void findGamesTest() {
+        SQLGameDAO gameDAO = new SQLGameDAO();
+        gameDAO.clear();
+        gameDAO.createGame("test");
+        gameDAO.createGame("test2");
+        gameDAO.createGame("test3");
+        ArrayList<GameData> games = gameDAO.findGames();
+        Assertions.assertNotNull(games);
+        Assertions.assertFalse(games.isEmpty());
+        Assertions.assertEquals(3, games.size());
+    }
+
+    @Test
+    public void findGamesBadTest() {
+        SQLGameDAO gameDAO = new SQLGameDAO();
+        gameDAO.clear();
+        Assertions.assertThrows(RuntimeException.class, () -> {
+            gameDAO.createGame(null);
+        });
+        ArrayList<GameData> games = gameDAO.findGames();
+        Assertions.assertTrue(games.isEmpty());
+    }
+
+    @Test
+    public void setPlayerTest() {
+        SQLGameDAO gameDAO = new SQLGameDAO();
+        gameDAO.clear();
+        GameData game = gameDAO.createGame("test");
+        gameDAO.setPlayer(game.gameID(), ChessGame.TeamColor.WHITE, "testUser");
+        gameDAO.setPlayer(game.gameID(), ChessGame.TeamColor.BLACK, "testUser2");
+    }
+
+    @Test
+    public void setPlayerBadInputTest() {
+        SQLGameDAO gameDAO = new SQLGameDAO();
+        gameDAO.clear();
+        GameData game = gameDAO.createGame("test");
+        gameDAO.setPlayer(game.gameID(), ChessGame.TeamColor.WHITE, "testUser");
+        gameDAO.setPlayer(game.gameID(), ChessGame.TeamColor.BLACK, "testUser2");
+        Assertions.assertThrows(RuntimeException.class, () -> {
+            gameDAO.setPlayer(game.gameID(), ChessGame.TeamColor.WHITE, "testUser3");
+        });
+        Assertions.assertThrows(RuntimeException.class, () -> {
+            gameDAO.setPlayer(game.gameID() + 100, ChessGame.TeamColor.WHITE, "testUser3");
         });
     }
 
