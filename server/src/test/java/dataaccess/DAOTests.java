@@ -1,17 +1,23 @@
 package dataaccess;
 
+import dataaccess.classes.SQLAuthDAO;
 import dataaccess.classes.SQLUserDAO;
+import model.AuthData;
 import model.UserData;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 public class DAOTests {
 
-    //UserDAO tests
+    //
+    // UserDAO tests
+    //
     @Test
     public void deleteUsersTest() {
         SQLUserDAO userDAO = new SQLUserDAO();
-        Assertions.assertDoesNotThrow(() -> {});
+        userDAO.clear();
     }
 
     @Test
@@ -47,8 +53,63 @@ public class DAOTests {
         Assertions.assertNull(userDAO.findUser("user"));
     }
 
+    //
+    // AuthDAO tests
+    //
+    @Test
+    public void clearAuthTest() {
+        SQLAuthDAO authDAO = new SQLAuthDAO();
+        authDAO.clear();
+    }
 
+    @Test
+    public void createAuthTest() {
+        SQLUserDAO userDAO = new SQLUserDAO();
+        SQLAuthDAO authDAO = new SQLAuthDAO();
+        userDAO.clear();
+        authDAO.clear();
+        userDAO.create(new UserData("user", "password", "email@example.com"));
+        authDAO.createAuthData("user");
+    }
 
+    @Test
+    public void createAuthTestBadInput() {
+        SQLUserDAO userDAO = new SQLUserDAO();
+        SQLAuthDAO authDAO = new SQLAuthDAO();
+        userDAO.clear();
+        authDAO.clear();
+        userDAO.create(new UserData("user", "password", "email@example.com"));
+        Assertions.assertThrows(RuntimeException.class, () -> {
+            authDAO.createAuthData("fakeUser");
+        });
+    }
 
+    @Test
+    public void deleteAuthTest() {
+        SQLUserDAO userDAO = new SQLUserDAO();
+        SQLAuthDAO authDAO = new SQLAuthDAO();
+        userDAO.clear();
+        authDAO.clear();
+        userDAO.create(new UserData("user", "password", "email@example.com"));
+        AuthData auth = authDAO.createAuthData("user");
+        Assertions.assertDoesNotThrow(() -> {
+            authDAO.deleteAuth(auth.authToken());
+        });
+    }
+
+    @Test
+    public void deleteAuthTestBadRequest() {
+        SQLUserDAO userDAO = new SQLUserDAO();
+        SQLAuthDAO authDAO = new SQLAuthDAO();
+        userDAO.clear();
+        authDAO.clear();
+        userDAO.create(new UserData("user", "password", "email@example.com"));
+        AuthData auth = authDAO.createAuthData("user");
+        Assertions.assertThrows(RuntimeException.class, () -> {
+            authDAO.deleteAuth(auth.authToken() + "1");
+        });
+    }
 
 }
+
+

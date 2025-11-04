@@ -59,7 +59,11 @@ public class SQLAuthDAO implements AuthDAO {
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, authToken);
-            stmt.executeUpdate();
+            int rowsAffected = stmt.executeUpdate();
+
+            if (rowsAffected == 0) {
+                throw new RuntimeException("Error: auth token not found");
+            }
 
         } catch (SQLException e) {
             throw new DataAccessException("Error deleting auth token from database", e);
