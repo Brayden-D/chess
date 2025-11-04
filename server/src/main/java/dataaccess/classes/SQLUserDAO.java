@@ -53,11 +53,11 @@ public class SQLUserDAO {
 
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    String _username = rs.getString("username");
+                    String tempUsername = rs.getString("username");
                     String password = rs.getString("password");
                     String email = rs.getString("email");
 
-                    return new UserData(_username, password, email);
+                    return new UserData(tempUsername, password, email);
                 } else {
                     return null;
                 }

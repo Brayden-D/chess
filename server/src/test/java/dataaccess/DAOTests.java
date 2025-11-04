@@ -8,6 +8,7 @@ import model.AuthData;
 import model.GameData;
 import model.UserData;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -15,6 +16,20 @@ import java.util.ArrayList;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class DAOTests {
+
+    SQLUserDAO userDAO;
+    SQLGameDAO gameDAO;
+    SQLAuthDAO authDAO;
+
+    @BeforeEach
+    public void setup() {
+        userDAO = new SQLUserDAO();
+        gameDAO = new SQLGameDAO();
+        authDAO = new SQLAuthDAO();
+        userDAO.clear();
+        gameDAO.clear();
+        authDAO.clear();
+    }
 
     //
     // UserDAO tests
@@ -69,20 +84,12 @@ public class DAOTests {
 
     @Test
     public void createAuthTest() {
-        SQLUserDAO userDAO = new SQLUserDAO();
-        SQLAuthDAO authDAO = new SQLAuthDAO();
-        userDAO.clear();
-        authDAO.clear();
         userDAO.create(new UserData("user", "password", "email@example.com"));
         authDAO.createAuthData("user");
     }
 
     @Test
     public void createAuthTestBadInput() {
-        SQLUserDAO userDAO = new SQLUserDAO();
-        SQLAuthDAO authDAO = new SQLAuthDAO();
-        userDAO.clear();
-        authDAO.clear();
         userDAO.create(new UserData("user", "password", "email@example.com"));
         Assertions.assertThrows(RuntimeException.class, () -> {
             authDAO.createAuthData("fakeUser");
@@ -91,10 +98,6 @@ public class DAOTests {
 
     @Test
     public void deleteAuthTest() {
-        SQLUserDAO userDAO = new SQLUserDAO();
-        SQLAuthDAO authDAO = new SQLAuthDAO();
-        userDAO.clear();
-        authDAO.clear();
         userDAO.create(new UserData("user", "password", "email@example.com"));
         AuthData auth = authDAO.createAuthData("user");
         Assertions.assertDoesNotThrow(() -> {
@@ -104,10 +107,6 @@ public class DAOTests {
 
     @Test
     public void deleteAuthBadRequestTest() {
-        SQLUserDAO userDAO = new SQLUserDAO();
-        SQLAuthDAO authDAO = new SQLAuthDAO();
-        userDAO.clear();
-        authDAO.clear();
         userDAO.create(new UserData("user", "password", "email@example.com"));
         AuthData auth = authDAO.createAuthData("user");
         Assertions.assertThrows(RuntimeException.class, () -> {
@@ -117,10 +116,6 @@ public class DAOTests {
 
     @Test
     public void getUsernameTest() {
-        SQLUserDAO userDAO = new SQLUserDAO();
-        SQLAuthDAO authDAO = new SQLAuthDAO();
-        userDAO.clear();
-        authDAO.clear();
         userDAO.create(new UserData("user", "password", "email@example.com"));
         AuthData auth = authDAO.createAuthData("user");
         Assertions.assertThrows(RuntimeException.class, () -> {
