@@ -1,9 +1,14 @@
 package facade;
 
+import java.net.http.HttpClient;
+
 public class ServerFacade {
 
-    public ServerFacade() {
+    private final HttpClient client = HttpClient.newHttpClient();
+    private final String serverURL;
 
+    public ServerFacade(String serverURL) {
+        this.serverURL = serverURL;
     }
 
     public void help() {
