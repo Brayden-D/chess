@@ -50,7 +50,7 @@ public class ServerFacade {
     }
 
     public HttpResponse<String> request(String method, String path, Object body) {
-        String serverURL = "http://localhost:8080/";
+        String serverURL = "http://localhost:8080";
         var request = HttpRequest.newBuilder()
                 .uri(URI.create(serverURL + path))
                 .method(method, makeRequestBody(body));
