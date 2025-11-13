@@ -1,20 +1,23 @@
 import chess.*;
+import facade.ServerFacade;
 import ui.EscapeSequences;
 
 import java.util.Scanner;
+import facade.ServerFacade.*;
 
 public class Main {
     public static void main(String[] args) {
-        boolean loggedIn = false;
+        String authToken = null;
         Scanner sc = new Scanner(System.in);
         String input;
+        ServerFacade server = new ServerFacade();
 
         System.out.println(EscapeSequences.SET_TEXT_COLOR_GREEN + "♕ 240 Chess Client" + EscapeSequences.RESET_TEXT_COLOR);
         System.out.println(EscapeSequences.SET_TEXT_COLOR_WHITE + "enter \"help\" for commands " + EscapeSequences.RESET_TEXT_COLOR);
         System.out.println();
 
         while(true) {
-            if(!loggedIn) {
+            if(authToken == null) {
                 System.out.print(EscapeSequences.SET_TEXT_COLOR_WHITE + "[logged out] " + EscapeSequences.RESET_TEXT_COLOR);
             } else {
                 System.out.print(EscapeSequences.SET_TEXT_COLOR_WHITE + "[logged in] " + EscapeSequences.RESET_TEXT_COLOR);
@@ -23,10 +26,10 @@ public class Main {
             System.out.flush();
             input = sc.nextLine();
 
-            switch (input) {
+            switch (input.split(" ")[0]) {
                 case "help":
                 case "h":
-                    if(!loggedIn) {
+                    if(authToken == null) {
                         System.out.println(EscapeSequences.SET_TEXT_COLOR_WHITE +
                                 "help: lists commands\n" +
                                 "quit: terminates program\n" +
@@ -42,6 +45,25 @@ public class Main {
                                 "play [gamenumber/gamename] [optional: color]: join specified game (optional: with specified color)\n" +
                                 "observe [gamenumber/gamename]: observe an active game" +
                                 EscapeSequences.RESET_TEXT_COLOR);
+                    }
+                    break;
+
+                case "quit":
+                case "q":
+                    System.out.println(EscapeSequences.SET_TEXT_COLOR_YELLOW + "Goodbye!" + EscapeSequences.RESET_TEXT_COLOR);
+                    System.exit(0);
+                    break;
+
+                case "register":
+                case "r":
+                    try {
+                        authToken = server.register(input.split(" ")[1],
+                                                    input.split(" ")[2],
+                                                    input.split(" ")[3])
+                                .authToken();
+                        System.out.println("Successfully registered user: " + authToken);
+                    } catch (Exception e) {
+                        System.out.println(e.getMessage());
                     }
                     break;
 
