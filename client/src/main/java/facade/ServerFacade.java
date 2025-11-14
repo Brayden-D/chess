@@ -1,6 +1,7 @@
 package facade;
 
 import com.google.gson.Gson;
+import model.GameData;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -12,34 +13,37 @@ public class ServerFacade {
 
     private final HttpClient client = HttpClient.newHttpClient();
     String serverURL = "http://localhost:8080";
+    String authToken;
 
     public ServerFacade() {
     }
 
     // logged out functions
-    public LoginResponse register(String username, String password, String email) throws Exception {
+    public void register(String username, String password, String email) throws Exception {
         RegisterRequest user = new RegisterRequest(username, password, email);
-        var response = request("POST", "/user", user);
-        return handleResponse(response, LoginResponse.class);
+        var rawResponse = request("POST", "/user", user);
+        authToken = handleResponse(rawResponse, LoginResponse.class).authToken();
     }
 
-    public LoginResponse login(String username, String password) throws Exception {
+    public void login(String username, String password) throws Exception {
         LoginRequest user = new LoginRequest(username, password);
-        var response = request("POST", "/session", user);
-        return handleResponse(response, LoginResponse.class);
+        var rawResponse = request("POST", "/session", user);
+        authToken = handleResponse(rawResponse, LoginResponse.class).authToken();
     }
 
     // logged in functions
-    public void logout() {
+    public void logout() throws Exception {
         request("DELETE", "/session", null);
+        authToken = null;
     }
 
-    public void createGame(String gameName) {
+    public void createGame(String gameName) throws Exception {
         request("POST", "/game", gameName);
     }
 
-    public void listGames() {
-
+    public GameData[] listGames() throws Exception {
+        var response = request("POST", "/session", null);
+        return handleResponse(response, GameData[].class);
     }
 
     public void playGame(String gameName) {
@@ -50,14 +54,16 @@ public class ServerFacade {
 
     }
 
-    public HttpResponse<String> request(String method, String path, Object body) {
+    public HttpResponse<String> request(String method, String path, Object body) throws Exception {
         var request = HttpRequest.newBuilder()
                 .uri(URI.create(serverURL + path))
                 .method(method, makeRequestBody(body));
         if (body != null) {
             request.setHeader("Content-Type", "application/json");
         }
-
+        if (authToken != null) {
+            request.setHeader("authorization", authToken);
+        }
         try {
             return client.send(request.build(), HttpResponse.BodyHandlers.ofString());
         } catch (Exception e) {
