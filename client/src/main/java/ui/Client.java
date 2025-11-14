@@ -1,5 +1,6 @@
 package ui;
 
+import chess.ChessGame;
 import facade.ServerFacade;
 import model.GameData;
 
@@ -40,8 +41,8 @@ public class Client {
                                 logout: logs user out
                                 create [gamename]: creates a new game with specified name
                                 list: list all games currently on the server
-                                play [gamenumber/gamename] [color]: join specified game as the specified color
-                                observe [gamenumber/gamename]: observe an active game \n
+                                play [color] [gamenumber]: join specified game as the specified color
+                                observe [gamenumber]: observe an active game \n
                                 """);
                     }
                     break;
@@ -50,6 +51,7 @@ public class Client {
                 case "q":
                     if(isLoggedIn) {
                         System.out.println("You must log out before quitting\n");
+                        break;
                     }
                     System.out.println(EscapeSequences.SET_TEXT_COLOR_YELLOW+
                             "Goodbye!\n" +
@@ -61,6 +63,7 @@ public class Client {
                 case "r":
                     if (isLoggedIn) {
                         System.out.println("User already logged in!\n");
+                        break;
                     }
                     try {
                         server.register(tokens[1], tokens[2], tokens[3]);
@@ -75,6 +78,7 @@ public class Client {
                 case "li":
                     if (isLoggedIn) {
                         System.out.println("User already logged in!\n");
+                        break;
                     }
                     try {
                         server.login(tokens[1], tokens[2]);
@@ -89,6 +93,7 @@ public class Client {
                 case "lo":
                     if (!isLoggedIn) {
                         System.out.println("No user logged in!\n");
+                        break;
                     }
                     try {
                         server.logout();
@@ -103,6 +108,7 @@ public class Client {
                 case "c":
                     if (!isLoggedIn) {
                         System.out.println("No user logged in!\n");
+                        break;
                     }
                     try {
                         server.createGame(tokens[1]);
@@ -116,6 +122,7 @@ public class Client {
                 case "l":
                     if (!isLoggedIn) {
                         System.out.println("No user logged in!\n");
+                        break;
                     }
                     try {
                         ArrayList<GameData> data = server.listGames();
@@ -134,6 +141,29 @@ public class Client {
                     }
                     break;
 
+                case "join":
+                case "j":
+                    try {
+                        GameData gameData = server.listGames().get(Integer.parseInt(tokens[2]));
+                        ChessGame.TeamColor color = parseTeamColor(tokens[1]);
+                        server.playGame(color, gameData.gameID());
+                        gameData = server.listGames().get(Integer.parseInt(tokens[2]));
+                        printGame(gameData, color);
+                    } catch (Exception e) {
+                        System.out.println(e.getMessage() + "\n");
+                    }
+                    break;
+
+                case "observe":
+                case "o":
+                    try {
+                        GameData gameData = server.listGames().get(Integer.parseInt(tokens[2]));
+                        printGame(gameData, ChessGame.TeamColor.WHITE);
+                    } catch (Exception e) {
+                        System.out.println(e.getMessage() + "\n");
+                    }
+
+
                 default:
                     System.out.println(EscapeSequences.SET_TEXT_COLOR_RED +
                             "Unknown command: \"" + input + "\". Type \"help\" for a list of commands.\n" +
@@ -144,6 +174,30 @@ public class Client {
 
 
         }
+    }
+
+    private ChessGame.TeamColor parseTeamColor(String color) throws Exception {
+        ChessGame.TeamColor playerColor;
+        if (color.equals("w") ||
+                color.equals("white") ||
+                color.equals("White") ||
+                color.equals("WHITE") ||
+                color.equals("W")) {
+            playerColor = ChessGame.TeamColor.WHITE;
+        } else if (color.equals("b") ||
+                color.equals("black") ||
+                color.equals("Black") ||
+                color.equals("BLACK") ||
+                color.equals("B")) {
+            playerColor = ChessGame.TeamColor.BLACK;
+        } else  {
+            throw new Exception("Invalid color");
+        }
+        return playerColor;
+    }
+
+    private void printGame(GameData data, ChessGame.TeamColor color) throws Exception {
+
     }
 
 }

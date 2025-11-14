@@ -1,5 +1,6 @@
 package facade;
 
+import chess.ChessGame;
 import com.google.gson.Gson;
 import model.GameData;
 
@@ -8,6 +9,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
+import java.util.Objects;
 
 
 public class ServerFacade {
@@ -47,12 +49,8 @@ public class ServerFacade {
         return handleResponse(response, ListGamesResponse.class).games();
     }
 
-    public void playGame(String gameName) {
-
-    }
-
-    public void observeGame(String gameName) {
-
+    public void playGame(ChessGame.TeamColor color, int gameNum) throws Exception {
+        request("PUT", "/game", new JoinRequest(color, gameNum));
     }
 
     public HttpResponse<String> request(String method, String path, Object body) throws Exception {
