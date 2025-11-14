@@ -26,7 +26,6 @@ public class Client {
             } else {
                 System.out.print(SET_TEXT_COLOR_WHITE + "[logged in] > " + RESET_TEXT_COLOR);
             }
-
             System.out.flush();
             String[] tokens = sc.nextLine().split(" ");
 
@@ -42,9 +41,7 @@ public class Client {
                         System.out.println("You must log out before quitting\n");
                         break;
                     }
-                    System.out.println(SET_TEXT_COLOR_YELLOW+
-                            "Goodbye!\n" +
-                            RESET_TEXT_COLOR);
+                    System.out.println(SET_TEXT_COLOR_YELLOW + "Goodbye!\n" + RESET_TEXT_COLOR);
                     System.exit(0);
                     break;
 
@@ -52,6 +49,10 @@ public class Client {
                 case "r":
                     if (isLoggedIn) {
                         System.out.println("User already logged in!\n");
+                        break;
+                    }
+                    if (tokens.length != 4) {
+                        System.out.println("Wrong number of arguments!\n");
                         break;
                     }
                     try {
@@ -67,6 +68,10 @@ public class Client {
                 case "li":
                     if (isLoggedIn) {
                         System.out.println("User already logged in!\n");
+                        break;
+                    }
+                    if (tokens.length != 3) {
+                        System.out.println("Wrong number of arguments!\n");
                         break;
                     }
                     try {
@@ -97,6 +102,10 @@ public class Client {
                 case "c":
                     if (!isLoggedIn) {
                         System.out.println("No user logged in!\n");
+                        break;
+                    }
+                    if (tokens.length != 2) {
+                        System.out.println("Wrong number of arguments!\n");
                         break;
                     }
                     try {
@@ -136,9 +145,18 @@ public class Client {
                         System.out.println("No user logged in!\n");
                         break;
                     }
+                    if (tokens.length != 3) {
+                        System.out.println("Wrong number of arguments!\n");
+                        break;
+                    }
                     try {
                         GameData gameData = server.listGames().get(Integer.parseInt(tokens[2]));
                         ChessGame.TeamColor color = parseTeamColor(tokens[1]);
+                        if ((gameData.whiteUsername() != null && color == ChessGame.TeamColor.WHITE) ||
+                             gameData.blackUsername() != null && color == ChessGame.TeamColor.BLACK) {
+                            System.out.println("Spot already taken!\n");
+                            break;
+                        }
                         server.playGame(color, gameData.gameID());
                         gameData = server.listGames().get(Integer.parseInt(tokens[2]));
                         printGame(gameData, color);
@@ -153,6 +171,10 @@ public class Client {
                         System.out.println("No user logged in!\n");
                         break;
                     }
+                    if (tokens.length != 2) {
+                        System.out.println("Wrong number of arguments!\n");
+                        break;
+                    }
                     try {
                         GameData gameData = server.listGames().get(Integer.parseInt(tokens[1]));
                         printGame(gameData, ChessGame.TeamColor.WHITE);
@@ -161,16 +183,12 @@ public class Client {
                     }
                     break;
 
-
                 default:
                     System.out.println(SET_TEXT_COLOR_RED +
                             "Unknown command: \"" + input + "\". Type \"help\" for a list of commands.\n" +
                             RESET_TEXT_COLOR);
                     break;
             }
-
-
-
         }
     }
 
