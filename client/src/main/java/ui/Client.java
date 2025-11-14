@@ -3,6 +3,7 @@ package ui;
 import facade.ServerFacade;
 import model.GameData;
 
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Client {
@@ -117,7 +118,17 @@ public class Client {
                         System.out.println("No user logged in!\n");
                     }
                     try {
-                        GameData[] data = server.listGames();
+                        ArrayList<GameData> data = server.listGames();
+                        for (int i = 0; i < data.size(); i++) {
+                            GameData g = data.get(i);
+                            String white = (g.whiteUsername() != null) ? g.whiteUsername() : "---";
+                            String black = (g.blackUsername() != null) ? g.blackUsername() : "---";
+
+                            System.out.println(i + ". " + g.gameName() +
+                                    "\n   White Player: " + white +
+                                    "\n   Black Player: " + black);
+                        }
+                        System.out.println();
                     } catch (Exception e) {
                         System.out.println(e.getMessage() + "\n");
                     }

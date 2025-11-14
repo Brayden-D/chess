@@ -7,6 +7,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.ArrayList;
 
 
 public class ServerFacade {
@@ -38,12 +39,12 @@ public class ServerFacade {
     }
 
     public void createGame(String gameName) throws Exception {
-        request("POST", "/game", gameName);
+        request("POST", "/game", new CreateGameRequest(gameName));
     }
 
-    public GameData[] listGames() throws Exception {
-        var response = request("POST", "/session", null);
-        return handleResponse(response, GameData[].class);
+    public ArrayList<GameData> listGames() throws Exception {
+        var response = request("GET", "/game", null);
+        return handleResponse(response, ListGamesResponse.class).games();
     }
 
     public void playGame(String gameName) {
