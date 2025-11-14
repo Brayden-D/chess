@@ -11,6 +11,7 @@ import java.net.http.HttpResponse;
 public class ServerFacade {
 
     private final HttpClient client = HttpClient.newHttpClient();
+    String serverURL = "http://localhost:8080";
 
     public ServerFacade() {
     }
@@ -30,7 +31,7 @@ public class ServerFacade {
 
     // logged in functions
     public void logout() {
-
+        request("DELETE", "/session", null);
     }
 
     public void createGame(String gameName) {
@@ -50,7 +51,6 @@ public class ServerFacade {
     }
 
     public HttpResponse<String> request(String method, String path, Object body) {
-        String serverURL = "http://localhost:8080";
         var request = HttpRequest.newBuilder()
                 .uri(URI.create(serverURL + path))
                 .method(method, makeRequestBody(body));
