@@ -20,24 +20,27 @@ public class Client {
             }
 
             System.out.flush();
-            input = sc.nextLine();
+            String[] tokens = sc.nextLine().split(" ");
 
-            switch (input.split(" ")[0]) {
+            switch (tokens[0]) {
                 case "help":
                 case "h":
                     if(authToken == null) {
-                        System.out.println("help: lists commands\n" +
-                                "quit: terminates program\n" +
-                                "login [username] [password]: logs an existing user in\n" +
-                                "register [username] [password] [email]: registers a new user and logs them in");
+                        System.out.println("""
+                                help: lists commands
+                                quit: terminates program
+                                login [username] [password]: logs an existing user in
+                                register [username] [password] [email]: registers a new user and logs them in \
+                                """);
                     } else {
-                        System.out.println("help: lists commands\n" +
-                                "logout: logs user out\n" +
-                                "create [gamename]: creates a new game with specified name\n" +
-                                "list: list all games currently on the server\n" +
-                                "play [gamenumber/gamename] [optional: color]: join specified game " +
-                                "(optional: with specified color)\n" +
-                                "observe [gamenumber/gamename]: observe an active game\n");
+                        System.out.println("""
+                                help: lists commands
+                                logout: logs user out
+                                create [gamename]: creates a new game with specified name
+                                list: list all games currently on the server
+                                play [gamenumber/gamename] [color]: join specified game as the specified color
+                                observe [gamenumber/gamename]: observe an active game \
+                                """);
                     }
                     break;
 
@@ -56,9 +59,9 @@ public class Client {
                         System.out.println("User already logged in!\n");
                     }
                     try {
-                        authToken = server.register(input.split(" ")[1],
-                                        input.split(" ")[2],
-                                        input.split(" ")[3])
+                        authToken = server.register(tokens[1],
+                                                    tokens[2],
+                                                    tokens[3])
                                 .authToken();
                         System.out.println("Successfully registered user!\n");
                     } catch (Exception e) {
@@ -72,8 +75,8 @@ public class Client {
                         System.out.println("User already logged in!\n");
                     }
                     try {
-                        authToken = server.login(input.split(" ")[1],
-                                        input.split(" ")[2])
+                        authToken = server.login(tokens[1],
+                                                 tokens[2])
                                 .authToken();
                         System.out.println("Successfully logged in!\n");
                     } catch (Exception e) {
@@ -95,7 +98,18 @@ public class Client {
                     }
                     break;
 
-
+                case "create":
+                case "c":
+                    if (authToken == null) {
+                        System.out.println("No user logged in!\n");
+                    }
+                    try {
+                        server.createGame(tokens[1]);
+                        System.out.println("Successfully created game!\n");
+                    } catch (Exception e) {
+                        System.out.println(e.getMessage() + "\n");
+                    }
+                    break;
 
                 default:
                     System.out.println(EscapeSequences.SET_TEXT_COLOR_RED +

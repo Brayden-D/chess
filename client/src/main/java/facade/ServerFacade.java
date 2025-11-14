@@ -35,7 +35,7 @@ public class ServerFacade {
     }
 
     public void createGame(String gameName) {
-
+        request("POST", "/game", gameName);
     }
 
     public void listGames() {
