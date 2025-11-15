@@ -39,12 +39,14 @@ public class Client {
                 }
             } catch (Exception e) {
                 if (e.getMessage().contains("401")) {
-                    System.out.println("Invalid username or password");
-                    break;
-                }
-                if (e.getMessage().contains("out of bounds")) {
-                    System.out.println("invalid input");
-                } else {
+                    System.out.println("Invalid username or password\n");
+                } else if (e.getMessage().contains("403")) {
+                    System.out.println("Already taken\n");
+                } else if (e.getMessage().contains("out of bounds")) {
+                    System.out.println("invalid input\n");
+                } else if (e.getMessage().contains("For input string:")) {
+                    System.out.println("invalid input\n");
+                }else {
                     System.out.println(e.getMessage() + "\n");
                 }
             }
