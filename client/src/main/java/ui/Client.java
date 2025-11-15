@@ -16,219 +16,167 @@ public class Client {
 
     boolean isLoggedIn = false;
     Scanner sc = new Scanner(System.in);
-    String input;
     ServerFacade server = new ServerFacade();
 
     public void runREPL() {
-        while(true) {
-            if(!isLoggedIn) {
-                System.out.print(SET_TEXT_COLOR_WHITE + "[logged out] > " + RESET_TEXT_COLOR);
-            } else {
-                System.out.print(SET_TEXT_COLOR_WHITE + "[logged in] > " + RESET_TEXT_COLOR);
-            }
-            System.out.flush();
-            String[] tokens = sc.nextLine().split(" ");
+        while (true) {
+            printPrompt();
+            String[] tokens = sc.nextLine().trim().split(" ");
+            String cmd = tokens[0].toLowerCase();
 
-            switch (tokens[0]) {
-                case "help":
-                case "h":
-                    printCommands();
-                    break;
-
-                case "quit":
-                case "q":
-                    if(isLoggedIn) {
-                        System.out.println("You must log out before quitting\n");
-                        break;
-                    }
-                    System.out.println(SET_TEXT_COLOR_YELLOW + "Goodbye!\n" + RESET_TEXT_COLOR);
-                    System.exit(0);
-                    break;
-
-                case "register":
-                case "r":
-                    if (isLoggedIn) {
-                        System.out.println("User already logged in!\n");
-                        break;
-                    }
-                    if (tokens.length != 4) {
-                        System.out.println("Wrong number of arguments!\n");
-                        break;
-                    }
-                    try {
-                        server.register(tokens[1], tokens[2], tokens[3]);
-                        System.out.println("Successfully registered user!\n");
-                        isLoggedIn = true;
-                    } catch (Exception e) {
-                        System.out.println(e.getMessage() + "\n");
-                    }
-                    break;
-
-                case "login":
-                case "li":
-                    if (isLoggedIn) {
-                        System.out.println("User already logged in!\n");
-                        break;
-                    }
-                    if (tokens.length != 3) {
-                        System.out.println("Wrong number of arguments!\n");
-                        break;
-                    }
-                    try {
-                        server.login(tokens[1], tokens[2]);
-                        System.out.println("Successfully logged in!\n");
-                        isLoggedIn = true;
-                    } catch (Exception e) {
-                        System.out.println(e.getMessage() + "\n");
-                    }
-                    break;
-
-                case "logout":
-                case "lo":
-                    if (!isLoggedIn) {
-                        System.out.println("No user logged in!\n");
-                        break;
-                    }
-                    try {
-                        server.logout();
-                        System.out.println("Successfully logged out!\n");
-                        isLoggedIn = false;
-                    } catch (Exception e) {
-                        System.out.println(e.getMessage() + "\n");
-                    }
-                    break;
-
-                case "create":
-                case "c":
-                    if (!isLoggedIn) {
-                        System.out.println("No user logged in!\n");
-                        break;
-                    }
-                    if (tokens.length != 2) {
-                        System.out.println("Wrong number of arguments!\n");
-                        break;
-                    }
-                    try {
-                        server.createGame(tokens[1]);
-                        System.out.println("Successfully created game!\n");
-                    } catch (Exception e) {
-                        System.out.println(e.getMessage() + "\n");
-                    }
-                    break;
-
-                case "list":
-                case "l":
-                    if (!isLoggedIn) {
-                        System.out.println("No user logged in!\n");
-                        break;
-                    }
-                    try {
-                        ArrayList<GameData> data = server.listGames();
-                        for (int i = 0; i < data.size(); i++) {
-                            GameData g = data.get(i);
-                            String white = (g.whiteUsername() != null) ? g.whiteUsername() : "---";
-                            String black = (g.blackUsername() != null) ? g.blackUsername() : "---";
-
-                            System.out.println(i + ". " + g.gameName() +
-                                    "\n   White Player: " + white +
-                                    "\n   Black Player: " + black);
-                        }
-                        System.out.println();
-                    } catch (Exception e) {
-                        System.out.println(e.getMessage() + "\n");
-                    }
-                    break;
-
-                case "join":
-                case "j":
-                    if (!isLoggedIn) {
-                        System.out.println("No user logged in!\n");
-                        break;
-                    }
-                    if (tokens.length != 3) {
-                        System.out.println("Wrong number of arguments!\n");
-                        break;
-                    }
-                    try {
-                        GameData gameData = server.listGames().get(Integer.parseInt(tokens[2]));
-                        ChessGame.TeamColor color = parseTeamColor(tokens[1]);
-                        if ((gameData.whiteUsername() != null && color == ChessGame.TeamColor.WHITE) ||
-                             gameData.blackUsername() != null && color == ChessGame.TeamColor.BLACK) {
-                            System.out.println("Spot already taken!\n");
-                            break;
-                        }
-                        server.playGame(color, gameData.gameID());
-                        gameData = server.listGames().get(Integer.parseInt(tokens[2]));
-                        printGame(gameData, color);
-                    } catch (Exception e) {
-                        System.out.println(e.getMessage() + "\n");
-                    }
-                    break;
-
-                case "observe":
-                case "o":
-                    if (!isLoggedIn) {
-                        System.out.println("No user logged in!\n");
-                        break;
-                    }
-                    if (tokens.length != 2) {
-                        System.out.println("Wrong number of arguments!\n");
-                        break;
-                    }
-                    try {
-                        GameData gameData = server.listGames().get(Integer.parseInt(tokens[1]));
-                        printGame(gameData, ChessGame.TeamColor.WHITE);
-                    } catch (Exception e) {
-                        System.out.println(e.getMessage() + "\n");
-                    }
-                    break;
-
-                default:
-                    System.out.println(SET_TEXT_COLOR_RED +
-                            "Unknown command: \"" + input + "\". Type \"help\" for a list of commands.\n" +
-                            RESET_TEXT_COLOR);
-                    break;
+            try {
+                switch (cmd) {
+                    case "help", "h" -> printCommands();
+                    case "quit", "q" -> quit();
+                    case "register", "r" -> register(tokens);
+                    case "login", "li" -> login(tokens);
+                    case "logout", "lo" -> logout();
+                    case "create", "c" -> create(tokens);
+                    case "list", "l" -> listGames();
+                    case "join", "j" -> join(tokens);
+                    case "observe", "o" -> observe(tokens);
+                    default -> unknown(cmd);
+                }
+            } catch (Exception e) {
+                System.out.println(e.getMessage() + "\n");
             }
         }
+    }
+
+    private void printPrompt() {
+        System.out.print(SET_TEXT_COLOR_WHITE +
+                (isLoggedIn ? "[logged in] > " : "[logged out] > ") +
+                RESET_TEXT_COLOR);
+    }
+
+    private void requireArgs(String[] t, int expected) throws Exception {
+        if (t.length != expected) {
+            throw new Exception("Wrong number of arguments!");
+        }
+    }
+
+    private void requireLoggedIn() throws Exception {
+        if (!isLoggedIn) {
+            throw new Exception("No user logged in!");
+        }
+    }
+
+    private void requireLoggedOut() throws Exception {
+        if (isLoggedIn) {
+            throw new Exception("User already logged in!");
+        }
+    }
+
+    private void quit() throws Exception {
+        if (isLoggedIn) {
+            throw new Exception("You must log out before quitting");
+        }
+        System.out.println(SET_TEXT_COLOR_YELLOW + "Goodbye!\n" + RESET_TEXT_COLOR);
+        System.exit(0);
+    }
+
+    private void register(String[] t) throws Exception {
+        requireLoggedOut();
+        requireArgs(t, 4);
+        server.register(t[1], t[2], t[3]);
+        isLoggedIn = true;
+        System.out.println("Successfully registered user!\n");
+    }
+
+    private void login(String[] t) throws Exception {
+        requireLoggedOut();
+        requireArgs(t, 3);
+        server.login(t[1], t[2]);
+        isLoggedIn = true;
+        System.out.println("Successfully logged in!\n");
+    }
+
+    private void logout() throws Exception {
+        requireLoggedIn();
+        server.logout();
+        isLoggedIn = false;
+        System.out.println("Successfully logged out!\n");
+    }
+
+    private void create(String[] t) throws Exception {
+        requireLoggedIn();
+        requireArgs(t, 2);
+        server.createGame(t[1]);
+        System.out.println("Successfully created game!\n");
+    }
+
+    private void listGames() throws Exception {
+        requireLoggedIn();
+        var games = server.listGames();
+        for (int i = 0; i < games.size(); i++) {
+            var g = games.get(i);
+            System.out.printf(
+                    "%d. %s\n   White Player: %s\n   Black Player: %s\n",
+                    i, g.gameName(),
+                    g.whiteUsername() == null ? "---" : g.whiteUsername(),
+                    g.blackUsername() == null ? "---" : g.blackUsername()
+            );
+        }
+        System.out.println();
+    }
+
+    private void join(String[] t) throws Exception {
+        requireLoggedIn();
+        requireArgs(t, 3);
+        int index = Integer.parseInt(t[2]);
+        GameData game = server.listGames().get(index);
+        ChessGame.TeamColor color = parseTeamColor(t[1]);
+
+        if ((game.whiteUsername() != null && color == ChessGame.TeamColor.WHITE) ||
+                (game.blackUsername() != null && color == ChessGame.TeamColor.BLACK)) {
+            throw new Exception("Spot already taken!");
+        }
+
+        server.playGame(color, game.gameID());
+        game = server.listGames().get(index);
+        printGame(game, color);
+    }
+
+    private void observe(String[] t) throws Exception {
+        requireLoggedIn();
+        requireArgs(t, 2);
+        GameData game = server.listGames().get(Integer.parseInt(t[1]));
+        printGame(game, ChessGame.TeamColor.WHITE);
+    }
+
+    private void unknown(String cmd) {
+        System.out.println(SET_TEXT_COLOR_RED +
+                "Unknown command: \"" + cmd + "\". Type \"help\" for a list of commands.\n" +
+                RESET_TEXT_COLOR);
     }
 
     private ChessGame.TeamColor parseTeamColor(String color) throws Exception {
-        ChessGame.TeamColor playerColor;
-        if (color.equals("w") ||
-                color.equals("white") ||
-                color.equals("White") ||
-                color.equals("WHITE") ||
-                color.equals("W")) {
-            playerColor = ChessGame.TeamColor.WHITE;
-        } else if (color.equals("b") ||
-                color.equals("black") ||
-                color.equals("Black") ||
-                color.equals("BLACK") ||
-                color.equals("B")) {
-            playerColor = ChessGame.TeamColor.BLACK;
-        } else  {
-            throw new Exception("Invalid color");
-        }
-        return playerColor;
+        return switch (color.toLowerCase()) {
+            case "w", "white" -> ChessGame.TeamColor.WHITE;
+            case "b", "black" -> ChessGame.TeamColor.BLACK;
+            default -> throw new Exception("Invalid color");
+        };
     }
 
     private void printCommands() {
-        if(!isLoggedIn) {
+        if (!isLoggedIn) {
             System.out.println("""
-                                help: lists commands
-                                quit: terminates program
-                                login [username] [password]: logs an existing user in
-                                register [username] [password] [email]: registers a new user and logs them in \n
-                                """);
+                    help: lists commands
+                    quit: terminates program
+                    login [username] [password]: logs an existing user in
+                    register [username] [password] [email]: registers a new user and logs them in 
+
+                    """);
         } else {
             System.out.println("""
-                                help: lists commands
-                                logout: logs user out
-                                create [gamename]: creates a new game with specified name
-                                list: list all games currently on the server
-                                play [color] [gamenumber]: join specified game as the specified color
-                                observe [gamenumber]: observe an active game \n
-                                """);
+                    help: lists commands
+                    logout: logs user out
+                    create [gamename]: creates a new game with specified name
+                    list: list all games currently on the server
+                    play [color] [gamenumber]: join specified game as the specified color
+                    observe [gamenumber]: observe an active game 
+
+                    """);
         }
     }
 
@@ -237,62 +185,46 @@ public class Client {
         boolean isWhite = (color == ChessGame.TeamColor.WHITE);
 
         if (isWhite) {
-            System.out.print(
-                    SET_BG_COLOR_LIGHT_GREY + SET_TEXT_COLOR_BLACK +
-                            "    a  b  c  d  e  f  g  h    " +
-                            RESET_BG_COLOR + RESET_TEXT_COLOR + "\n"
-            );
+            System.out.print(SET_BG_COLOR_LIGHT_GREY + SET_TEXT_COLOR_BLACK +
+                    "    a  b  c  d  e  f  g  h    " +
+                    RESET_BG_COLOR + RESET_TEXT_COLOR + "\n");
         } else {
-            System.out.print(
-                    SET_BG_COLOR_LIGHT_GREY + SET_TEXT_COLOR_BLACK +
-                            "    h  g  f  e  d  c  b  a    " +
-                            RESET_BG_COLOR + RESET_TEXT_COLOR + "\n"
-            );
+            System.out.print(SET_BG_COLOR_LIGHT_GREY + SET_TEXT_COLOR_BLACK +
+                    "    h  g  f  e  d  c  b  a    " +
+                    RESET_BG_COLOR + RESET_TEXT_COLOR + "\n");
         }
 
         for (int displayRow = 0; displayRow < 8; displayRow++) {
-            int row = isWhite ? displayRow : (7 - displayRow);
-            int printedRank = isWhite ? (8 - displayRow) : (displayRow + 1);
+            int row = isWhite ? displayRow : 7 - displayRow;
+            int printedRank = isWhite ? 8 - displayRow : displayRow + 1;
 
-            System.out.print(
-                    SET_BG_COLOR_LIGHT_GREY + SET_TEXT_COLOR_BLACK +
-                            " " + printedRank + " " +
-                            RESET_BG_COLOR + RESET_TEXT_COLOR
-            );
+            System.out.print(SET_BG_COLOR_LIGHT_GREY + SET_TEXT_COLOR_BLACK +
+                    " " + printedRank + " " +
+                    RESET_BG_COLOR + RESET_TEXT_COLOR);
 
             for (int displayCol = 0; displayCol < 8; displayCol++) {
-                int col = isWhite ? displayCol : (7 - displayCol);
-
+                int col = isWhite ? displayCol : 7 - displayCol;
                 boolean lightSquare = (row + col) % 2 == 0;
                 System.out.print(lightSquare ? SET_BG_COLOR_WHITE : SET_BG_COLOR_BLACK);
-
                 printPiece(board.getPiece(new ChessPosition(row + 1, col + 1)));
-
                 System.out.print(RESET_BG_COLOR);
             }
 
-            System.out.print(
-                    SET_BG_COLOR_LIGHT_GREY + SET_TEXT_COLOR_BLACK +
-                            " " + printedRank + " " +
-                            RESET_BG_COLOR + RESET_TEXT_COLOR + "\n"
-            );
+            System.out.print(SET_BG_COLOR_LIGHT_GREY + SET_TEXT_COLOR_BLACK +
+                    " " + printedRank + " " +
+                    RESET_BG_COLOR + RESET_TEXT_COLOR + "\n");
         }
 
         if (isWhite) {
-            System.out.print(
-                    SET_BG_COLOR_LIGHT_GREY + SET_TEXT_COLOR_BLACK +
-                            "    a  b  c  d  e  f  g  h    " +
-                            RESET_BG_COLOR + RESET_TEXT_COLOR + "\n\n"
-            );
+            System.out.print(SET_BG_COLOR_LIGHT_GREY + SET_TEXT_COLOR_BLACK +
+                    "    a  b  c  d  e  f  g  h    " +
+                    RESET_BG_COLOR + RESET_TEXT_COLOR + "\n\n");
         } else {
-            System.out.print(
-                    SET_BG_COLOR_LIGHT_GREY + SET_TEXT_COLOR_BLACK +
-                            "    h  g  f  e  d  c  b  a    " +
-                            RESET_BG_COLOR + RESET_TEXT_COLOR + "\n\n"
-            );
+            System.out.print(SET_BG_COLOR_LIGHT_GREY + SET_TEXT_COLOR_BLACK +
+                    "    h  g  f  e  d  c  b  a    " +
+                    RESET_BG_COLOR + RESET_TEXT_COLOR + "\n\n");
         }
     }
-
 
     void printPiece(ChessPiece piece) {
         if (piece == null) {
@@ -318,5 +250,4 @@ public class Client {
         System.out.print(symbol);
         System.out.print(RESET_TEXT_COLOR);
     }
-
 }

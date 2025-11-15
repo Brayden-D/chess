@@ -13,11 +13,16 @@ import java.util.ArrayList;
 public class ServerFacade {
 
     private final HttpClient client = HttpClient.newHttpClient();
-    String serverURL = "http://localhost:8080";
+    String serverURL;
     //only public for testing purposes
     public String authToken;
 
+    public void setServerURL(String url) {
+        this.serverURL = url;
+    }
+
     public void deleteALL() throws Exception {
+        authToken = null;
         request("DELETE", "/db", null);
     }
 
