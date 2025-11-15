@@ -14,7 +14,8 @@ public class ServerFacade {
 
     private final HttpClient client = HttpClient.newHttpClient();
     String serverURL = "http://localhost:8080";
-    String authToken;
+    //only public for testing purposes
+    public String authToken;
 
     public void deleteALL() throws Exception {
         request("DELETE", "/db", null);
@@ -35,6 +36,9 @@ public class ServerFacade {
 
     // logged in functions
     public void logout() throws Exception {
+        if (authToken == null) {
+            throw new Exception("not logged in");
+        }
         request("DELETE", "/session", null);
         authToken = null;
     }

@@ -1,5 +1,6 @@
 package client;
 
+import chess.ChessGame;
 import facade.ServerFacade;
 import org.junit.jupiter.api.*;
 import server.Server;
@@ -68,6 +69,65 @@ public class ServerFacadeTests {
         Assertions.assertDoesNotThrow(() -> facade.deleteALL());
         Assertions.assertDoesNotThrow(() -> facade.register("a", "a", "a"));
         Assertions.assertDoesNotThrow(() -> facade.logout());
+    }
+
+    @Test
+    public void logoutTestNeg() {
+        Assertions.assertDoesNotThrow(() -> facade.deleteALL());
+        Assertions.assertNull(facade.authToken);
+        Assertions.assertThrows(Exception.class, () -> facade.logout());
+    }
+
+    @Test
+    public void createGameTest() {
+        Assertions.assertDoesNotThrow(() -> facade.deleteALL());
+        Assertions.assertNull(facade.authToken);
+        Assertions.assertDoesNotThrow(() -> facade.createGame(""));
+    }
+
+    @Test
+    public void createGameTestNeg() {
+        Assertions.assertDoesNotThrow(() -> facade.deleteALL());
+        Assertions.assertNull(facade.authToken);
+        Assertions.assertThrows(Exception.class, () -> {facade.createGame(null);
+                                                        facade.listGames();});
+
+    }
+
+    @Test
+    public void listGameTest() {
+        Assertions.assertDoesNotThrow(() -> facade.deleteALL());
+        Assertions.assertNull(facade.authToken);
+        Assertions.assertDoesNotThrow(() -> facade.register("a", "a", "a"));
+        Assertions.assertDoesNotThrow(() -> facade.createGame("test"));
+        Assertions.assertDoesNotThrow(() -> facade.listGames());
+    }
+
+    @Test
+    public void listGameTestNeg() {
+        Assertions.assertDoesNotThrow(() -> facade.deleteALL());
+        Assertions.assertNull(facade.authToken);
+        Assertions.assertThrows(Exception.class, () -> {facade.createGame("test");
+            facade.listGames();});
+
+    }
+
+    @Test
+    public void joinGameTest() {
+        Assertions.assertDoesNotThrow(() -> facade.deleteALL());
+        Assertions.assertNull(facade.authToken);
+        Assertions.assertDoesNotThrow(() -> facade.register("a", "a", "a"));
+        Assertions.assertDoesNotThrow(() -> facade.createGame("test"));
+        Assertions.assertDoesNotThrow(() -> facade.playGame(ChessGame.TeamColor.WHITE, 0));
+    }
+
+    @Test
+    public void joinGameTestNeg() {
+        Assertions.assertDoesNotThrow(() -> facade.deleteALL());
+        Assertions.assertNull(facade.authToken);
+        Assertions.assertDoesNotThrow(() -> facade.createGame("test"));
+        Assertions.assertThrows(Exception.class, () -> facade.listGames());
+        Assertions.assertDoesNotThrow(() -> facade.playGame(ChessGame.TeamColor.WHITE, 0));
     }
 
 
