@@ -18,6 +18,7 @@ public class Main {
         System.out.println();
 
         Client client = new Client();
+        client.server.setServerURL("http://localhost:8080");
         client.runREPL();
 
     }

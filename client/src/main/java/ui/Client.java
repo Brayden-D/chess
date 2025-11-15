@@ -16,7 +16,7 @@ public class Client {
 
     boolean isLoggedIn = false;
     Scanner sc = new Scanner(System.in);
-    ServerFacade server = new ServerFacade();
+    public ServerFacade server = new ServerFacade();
 
     public void runREPL() {
         while (true) {
@@ -38,7 +38,15 @@ public class Client {
                     default -> unknown(cmd);
                 }
             } catch (Exception e) {
-                System.out.println(e.getMessage() + "\n");
+                if (e.getMessage().contains("401")) {
+                    System.out.println("Invalid username or password");
+                    break;
+                }
+                if (e.getMessage().contains("out of bounds")) {
+                    System.out.println("invalid input");
+                } else {
+                    System.out.println(e.getMessage() + "\n");
+                }
             }
         }
     }
