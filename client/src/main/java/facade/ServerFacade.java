@@ -9,8 +9,6 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
-import java.util.Objects;
-
 
 public class ServerFacade {
 
@@ -18,7 +16,8 @@ public class ServerFacade {
     String serverURL = "http://localhost:8080";
     String authToken;
 
-    public ServerFacade() {
+    public void deleteALL() throws Exception {
+        request("DELETE", "/db", null);
     }
 
     // logged out functions
@@ -66,7 +65,7 @@ public class ServerFacade {
         try {
             return client.send(request.build(), HttpResponse.BodyHandlers.ofString());
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println(e.getMessage());
             return null;
         }
     }
