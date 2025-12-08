@@ -8,11 +8,20 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.net.http.WebSocket;
 import java.util.ArrayList;
+
+class WSListener implements WebSocket.Listener {
+    @Override
+    public void onOpen(WebSocket webSocket) {
+        System.out.println("Connected to game");
+    }
+}
 
 public class ServerFacade {
 
     private final HttpClient client = HttpClient.newHttpClient();
+    private WebSocket webSocket;
     String serverURL;
     //only public for testing purposes
     public String authToken;
@@ -79,6 +88,13 @@ public class ServerFacade {
         }
     }
 
+    public void joinWebSocket() throws Exception {
+        webSocket = HttpClient.newHttpClient()
+                .newWebSocketBuilder()
+                .buildAsync(URI.create(serverURL + "/ws"), new WSListener())
+                .join();
+    }
+
     private HttpRequest.BodyPublisher makeRequestBody(Object request) {
         if (request != null) {
             return HttpRequest.BodyPublishers.ofString(new Gson().toJson(request));
@@ -98,5 +114,6 @@ public class ServerFacade {
 
         return null;
     }
+
 
 }

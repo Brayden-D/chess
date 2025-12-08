@@ -7,7 +7,6 @@ import chess.ChessPosition;
 import facade.ServerFacade;
 import model.GameData;
 
-import java.util.ArrayList;
 import java.util.Scanner;
 
 import static ui.EscapeSequences.*;
@@ -17,6 +16,7 @@ public class Client {
     boolean isLoggedIn = false;
     Scanner sc = new Scanner(System.in);
     public ServerFacade server = new ServerFacade();
+
 
     public void runREPL() {
         while (true) {
@@ -49,6 +49,29 @@ public class Client {
                 }else {
                     System.out.println(e.getMessage() + "\n");
                 }
+            }
+        }
+    }
+
+    public void playGame() {
+        while (true) {
+            System.out.print(SET_TEXT_COLOR_WHITE +
+                    "[playing game] > " +
+                    RESET_TEXT_COLOR);
+            String[] tokens = sc.nextLine().trim().split(" ");
+            String cmd = tokens[0].toLowerCase();
+            try {
+                switch (cmd) {
+                    case "help", "h" -> printCommands();
+                    case "redraw", "r" -> unknown("redraw");
+                    case "leave", "l" -> unknown("leave");
+                    case "move", "m" -> unknown("move");
+                    case "resign", "forfeit", "f" -> unknown("resign");
+                    case "highlight", "hl" -> unknown("highlight");
+                    default -> unknown(cmd);
+                }
+            } catch (Exception e) {
+                System.out.println(e.getMessage() + "\n");
             }
         }
     }
@@ -143,8 +166,12 @@ public class Client {
         }
 
         server.playGame(color, game.gameID());
+        server.joinWebSocket();
+        server.sendWebSocketMessage("join " + game.gameID());
         game = server.listGames().get(index);
         printGame(game, color);
+        
+        playGame();
     }
 
     private void observe(String[] t) throws Exception {
