@@ -10,11 +10,19 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.WebSocket;
 import java.util.ArrayList;
+import java.util.concurrent.CompletionStage;
 
 class WSListener implements WebSocket.Listener {
     @Override
     public void onOpen(WebSocket webSocket) {
         System.out.println("Connected to game");
+    }
+
+    @Override
+    public CompletionStage<?> onText(WebSocket webSocket, CharSequence data, boolean last) {
+        System.out.println("Received: " + data);
+        webSocket.request(1); // ADD THIS
+        return null;
     }
 }
 
@@ -93,6 +101,12 @@ public class ServerFacade {
                 .newWebSocketBuilder()
                 .buildAsync(URI.create(serverURL + "/ws"), new WSListener())
                 .join();
+    }
+
+    public void sendWebSocketMessage(String message) {
+        if (webSocket != null) {
+            webSocket.sendText(message, true);
+        }
     }
 
     private HttpRequest.BodyPublisher makeRequestBody(Object request) {
