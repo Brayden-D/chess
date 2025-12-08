@@ -210,7 +210,7 @@ public class Client {
                     logout: logs user out
                     create [gamename]: creates a new game with specified name
                     list: list all games currently on the server
-                    play [color] [gamenumber]: join specified game as the specified color
+                    join [color] [gamenumber]: join specified game as the specified color
                     observe [gamenumber]: observe an active game 
 
                     """);

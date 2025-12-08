@@ -16,12 +16,13 @@ class WSListener implements WebSocket.Listener {
     @Override
     public void onOpen(WebSocket webSocket) {
         System.out.println("Connected to game");
+        webSocket.request(1);
     }
 
     @Override
     public CompletionStage<?> onText(WebSocket webSocket, CharSequence data, boolean last) {
         System.out.println("Received: " + data);
-        webSocket.request(1); // ADD THIS
+        webSocket.request(1);
         return null;
     }
 }
@@ -96,19 +97,6 @@ public class ServerFacade {
         }
     }
 
-    public void joinWebSocket() throws Exception {
-        webSocket = HttpClient.newHttpClient()
-                .newWebSocketBuilder()
-                .buildAsync(URI.create(serverURL + "/ws"), new WSListener())
-                .join();
-    }
-
-    public void sendWebSocketMessage(String message) {
-        if (webSocket != null) {
-            webSocket.sendText(message, true);
-        }
-    }
-
     private HttpRequest.BodyPublisher makeRequestBody(Object request) {
         if (request != null) {
             return HttpRequest.BodyPublishers.ofString(new Gson().toJson(request));
@@ -127,6 +115,22 @@ public class ServerFacade {
         }
 
         return null;
+    }
+
+    // websocket methods
+    public void joinWebSocket() throws Exception {
+        String url = serverURL.replaceFirst("^http", "ws") + "/ws";
+
+        webSocket = HttpClient.newHttpClient()
+                .newWebSocketBuilder()
+                .buildAsync(URI.create(url), new WSListener())
+                .join();
+    }
+
+    public void sendWebSocketMessage(String message) {
+        if (webSocket != null) {
+            webSocket.sendText(message, true);
+        }
     }
 
 
