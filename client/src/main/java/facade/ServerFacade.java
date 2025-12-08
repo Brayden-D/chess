@@ -118,8 +118,11 @@ public class ServerFacade {
     }
 
     // websocket methods
-    public void joinWebSocket() throws Exception {
-        String url = serverURL.replaceFirst("^http", "ws") + "/ws";
+    public void joinWebSocket(int gameID, String color) throws Exception {
+        String url = serverURL.replaceFirst("^http", "ws") + "/ws" +
+                "?auth=" + authToken +
+                "&game=" + gameID +
+                "&color=" + color;
 
         webSocket = HttpClient.newHttpClient()
                 .newWebSocketBuilder()
