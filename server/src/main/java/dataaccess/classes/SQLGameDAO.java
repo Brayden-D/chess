@@ -133,6 +133,29 @@ public class SQLGameDAO implements GameDAO {
         }
     }
 
+    public GameData getGame(int gameID) {
+        String sql = "SELECT game_json FROM games WHERE id = ?";
+
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, gameID);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    String gameJson = rs.getString("game_json");
+                    return gson.fromJson(gameJson, GameData.class);
+                } else {
+                    throw new RuntimeException("Error: Game ID not found");
+                }
+            }
+
+        } catch (SQLException | DataAccessException e) {
+            throw new RuntimeException("Error retrieving game with ID: " + gameID, e);
+        }
+    }
+
+
 
     public void clear() {
         try (Connection conn = DatabaseManager.getConnection();

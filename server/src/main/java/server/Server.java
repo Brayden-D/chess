@@ -17,6 +17,7 @@ import java.util.Objects;
 public class Server {
 
     private final Javalin server;
+    WebSocket webSocket = new WebSocket();
 
     public Server() {
         server = Javalin.create(config -> {
@@ -44,6 +45,13 @@ public class Server {
 
         // ListGames endpoint
         server.get("/game", this::listGames);
+
+        // WebSocket endpoint
+        server.ws("/ws", ws -> {
+            ws.onConnect(webSocket::onConnect);
+            ws.onMessage(webSocket::onMessage);
+            ws.onClose(webSocket::onClose);
+        });
 
         server.exception(Exception.class, (e, ctx) -> {
             ctx.status(500).json(Map.of("message", e.getMessage()));
