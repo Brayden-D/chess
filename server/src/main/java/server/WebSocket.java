@@ -1,15 +1,14 @@
 package server;
 
 import chess.*;
+import com.google.gson.Gson;
 import dataaccess.classes.SQLGameDAO;
 import io.javalin.websocket.WsCloseContext;
 import io.javalin.websocket.WsConnectContext;
-import io.javalin.websocket.WsContext;
 import io.javalin.websocket.WsMessageContext;
 import model.GameData;
 import server.recordclasses.PlayerSession;
 
-import java.lang.module.InvalidModuleDescriptorException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -18,7 +17,7 @@ import static java.lang.Integer.parseInt;
 public class WebSocket {
 
     private final  Map<Integer, Map<String, PlayerSession>> games = new ConcurrentHashMap<>();
-
+    private final Gson gson = new Gson();
 
     public void onConnect(WsConnectContext ctx) {
         String auth = ctx.queryParam("auth");
@@ -38,18 +37,19 @@ public class WebSocket {
         String msg = ctx.message();
 
         Map<String, PlayerSession> gamePlayers = games.getOrDefault(gameID, Map.of());
+        String[] input = msg.split(" ");
 
-        if (msg.split(" ")[0].equals("move")) {
+        if (input[0].equals("move")) {
             SQLGameDAO gameDAO = new SQLGameDAO();
             GameData game = gameDAO.getGame(gameID);
 
-            String start = msg.split(" ")[1];
-            String end = msg.split(" ")[2];
-            ChessPosition startPos = new ChessPosition(start.charAt(0) - 'a' + 1, start.charAt(1));
-            ChessPosition endPos = new ChessPosition(end.charAt(0) - 'a', end.charAt(1));
+            String start = input[1];
+            String end = input[2];
+            ChessPosition startPos = new ChessPosition(start.charAt(0) - 'a' + 1, start.charAt(1) - '0');
+            ChessPosition endPos = new ChessPosition(end.charAt(0) - 'a' + 1, end.charAt(1) - '0');
             ChessPiece.PieceType promotionPiece = null;
             try {
-                promotionPiece = switch (msg.split(" ")[3]) {
+                promotionPiece = switch (input[3]) {
                     case "n", "knight" -> ChessPiece.PieceType.KNIGHT;
                     case "b", "bishop" -> ChessPiece.PieceType.BISHOP;
                     case "r", "rook" -> ChessPiece.PieceType.ROOK;
@@ -57,30 +57,39 @@ public class WebSocket {
                     default -> promotionPiece;
                 };
             } catch (Exception ignored) {}
-            ChessMove move = new ChessMove(startPos, endPos, promotionPiece)
+            ChessMove move = new ChessMove(startPos, endPos, promotionPiece);
 
             try {
-                if (color.equals(game.game().getTeamTurn().name())
+                if (color.equalsIgnoreCase(game.game().getTeamTurn().name())
                         && game.game().validMoves(startPos).contains(move)) {
                     game.game().makeMove(move);
                 } else {
                     throw new InvalidMoveException();
                 }
             } catch (InvalidMoveException e) {
-                //TODO send "invalid move" to person who tried
+                ctx.send("Invalid move");
+                return;
             }
 
-            //TODO update database with new board
-
+            GameData updated = new GameData(
+                    game.gameID(),
+                    game.whiteUsername(),
+                    game.blackUsername(),
+                    game.gameName(),
+                    game.game()
+            );
+            gameDAO.updateGame(updated);
+            gamePlayers.values().forEach(playerSession -> {
+                playerSession.ctx().send("board " + gson.toJson(updated.game()));
+            });
+            return;
 
         }
 
-        /*
         System.out.println("Broadcasting message from " + color + " in game " + gameID + ": " + msg);
         gamePlayers.values().forEach(playerSession -> {
             playerSession.ctx().send(msg);
         });
-        */
 
     }
 
