@@ -32,7 +32,7 @@ public class WebSocket {
     }
 
     public void onMessage(WsMessageContext ctx) {
-        System.out.println("Received message: " + ctx.message());
+        System.out.println("Received message: " + ctx.toString());
         String auth = ctx.queryParam("auth");
         Integer gameID = parseInt(ctx.queryParam("game"));
         String color = ctx.queryParam("color");

@@ -3,8 +3,6 @@ package facade;
 import chess.ChessGame;
 import com.google.gson.Gson;
 import model.GameData;
-import ui.Client;
-import ui.Printer;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -13,6 +11,27 @@ import java.net.http.HttpResponse;
 import java.net.http.WebSocket;
 import java.util.ArrayList;
 import java.util.concurrent.CompletionStage;
+import java.util.function.Consumer;
+
+class WSListener implements WebSocket.Listener {
+
+    WSListener() {
+
+    }
+
+    @Override
+    public void onOpen(WebSocket webSocket) {
+        System.out.println("Connected to game");
+        webSocket.request(1);
+    }
+
+    @Override
+    public CompletionStage<?> onText(WebSocket webSocket, CharSequence data, boolean last) {
+        System.out.println("Received data: " + data);
+        webSocket.request(1);
+        return null;
+    }
+}
 
 public class ServerFacade {
 
@@ -105,61 +124,7 @@ public class ServerFacade {
     }
 
     // websocket methods
-    class WSListener implements WebSocket.Listener {
-
-        Printer printer = new Printer();
-
-        WSListener() {
-        }
-
-        @Override
-        public void onOpen(WebSocket webSocket) {
-            System.out.println("Connected to game");
-            webSocket.request(1);
-        }
-
-        @Override
-        public CompletionStage<?> onText(WebSocket webSocket, CharSequence data, boolean last) {
-            handleWSMessage(data.toString());
-            webSocket.request(1);
-            return null;
-        }
-
-        public void handleWSMessage(String json) {
-
-            class WSMessage {
-                String type;
-                String message;
-                GameData game;
-            }
-
-            var gson = new Gson();
-            var event = gson.fromJson(json, WSMessage.class);
-
-            switch (event.type) {
-
-                case "MOVE" -> {
-                    try {
-                        System.out.println("test");
-                        printer.printGame(event.game, ChessGame.TeamColor.WHITE);
-                    } catch (Exception e) {
-                        System.out.println(e.getMessage());
-                    }
-                }
-
-                case "ERROR" -> {
-                    System.out.println("Server error: " + event.message);
-                }
-
-                default -> {
-                    System.out.println("Unknown WS message: " + json);
-                }
-            }
-        }
-
-    }
-
-    public void joinWebSocket(int gameID, String color) throws Exception {
+    public void joinWebSocket(int gameID, String color, Consumer<String> callback) throws Exception {
         String url = serverURL.replaceFirst("^http", "ws") + "/ws" +
                 "?auth=" + authToken +
                 "&game=" + gameID +
@@ -172,8 +137,8 @@ public class ServerFacade {
     }
 
     public void sendWebSocketMessage(String message) {
+        System.out.println("Sending message: " + message);
         if (webSocket != null) {
-            System.out.println("Sending message: " + message);
             webSocket.sendText(message, true);
         }
     }
