@@ -4,11 +4,9 @@ import chess.*;
 import com.google.gson.Gson;
 import dataaccess.classes.SQLAuthDAO;
 import dataaccess.classes.SQLGameDAO;
-import dataaccess.interfaces.GameDAO;
 import io.javalin.websocket.WsCloseContext;
 import io.javalin.websocket.WsConnectContext;
 import io.javalin.websocket.WsMessageContext;
-import model.AuthData;
 import model.GameData;
 import server.recordclasses.PlayerSession;
 
@@ -19,7 +17,6 @@ import websocket.messages.ErrorMessage;
 import websocket.messages.LoadGameMessage;
 import websocket.messages.NotificationMessage;
 
-import static java.lang.Integer.parseInt;
 
 public class WebSocket {
 
@@ -27,13 +24,13 @@ public class WebSocket {
     private final Gson gson = new Gson();
 
     void onConnect(WsConnectContext wsConnectContext) {}
+    void onClose(WsCloseContext wsCloseContext) {}
 
     public void onMessage(WsMessageContext ctx) {
         try {
             String msg = ctx.message();
 
             UserGameCommand command = gson.fromJson(msg, UserGameCommand.class);
-            String auth = command.getAuthToken();
             Integer gameID = command.getGameID();
             UserGameCommand.CommandType type = command.getCommandType();
 
@@ -43,7 +40,7 @@ public class WebSocket {
 
             switch (type) {
                 case CONNECT -> handleConnect(ctx, command);
-                case MAKE_MOVE -> {}
+                case MAKE_MOVE -> handleMove(ctx, command);
                 case LEAVE -> {}
                 case RESIGN -> {}
             }
@@ -54,8 +51,6 @@ public class WebSocket {
             ctx.send(gson.toJson(error));
         }
     }
-
-    void onClose(WsCloseContext wsCloseContext) {}
 
     private void handleConnect(WsMessageContext ctx, UserGameCommand cmd) throws Exception {
         String auth = cmd.getAuthToken();
@@ -87,7 +82,7 @@ public class WebSocket {
                 username + " joined the game as " + color.name().toLowerCase()
         );
         games.get(gameID).forEach((otherAuth, session) -> {
-            if (!otherAuth.equals(auth)) { // skip the new user
+            if (!otherAuth.equals(auth)) {
                 session.ctx().send(gson.toJson(notification));
             }
         });
@@ -98,39 +93,24 @@ public class WebSocket {
         ctx.send(gson.toJson(loadMsg));
     }
 
-    /*
-    private void handleMove(String auth, Integer gameID, WsMessageContext ctx, UserGameCommand command) throws InvalidMoveException {
+
+    private void handleMove(WsMessageContext ctx, UserGameCommand command) throws Exception {
         SQLGameDAO gameDAO = new SQLGameDAO();
-        GameData game = gameDAO.getGame(gameID);
+        SQLAuthDAO authDAO = new SQLAuthDAO();
+        GameData game = gameDAO.getGame(command.getGameID());
+        int gameID = command.getGameID();
+        String auth = command.getAuthToken();
 
-        String start = command.start;
-        String end = command.end;
-        ChessPosition startPos = new ChessPosition(start.charAt(1) - '0', start.charAt(0) - 'a' + 1);
-        ChessPosition endPos = new ChessPosition(end.charAt(1) - '0', end.charAt(0) - 'a' + 1);
-
-        ChessPiece.PieceType promotionPiece = null;
-        try {
-            if (command.promotion != null) {
-                promotionPiece = switch (command.promotion.toLowerCase()) {
-                    case "n", "knight" -> ChessPiece.PieceType.KNIGHT;
-                    case "b", "bishop" -> ChessPiece.PieceType.BISHOP;
-                    case "r", "rook" -> ChessPiece.PieceType.ROOK;
-                    case "q", "queen" -> ChessPiece.PieceType.QUEEN;
-                    default -> null;
-                };
-            }
-        } catch (Exception ignored) {}
-
-        ChessMove move = new ChessMove(startPos, endPos, promotionPiece);
-
-        if (!game.game().validMoves(startPos).contains(move) ||
-                !game.game().getTeamTurn().name().equalsIgnoreCase(games.get(gameID).get(auth).color())) {
-            throw new InvalidMoveException();
+        String username = authDAO.getUsername(auth);
+        if (username == null ||
+                (!username.equals(game.whiteUsername()) && game.game().getTeamTurn() == ChessGame.TeamColor.WHITE) ||
+                (!username.equals(game.blackUsername()) && game.game().getTeamTurn() == ChessGame.TeamColor.BLACK)) {
+            throw new Exception("Not authorized");
         }
 
+        ChessMove move = command.getMove();
         game.game().makeMove(move);
 
-        // Update the game in the DB
         GameData updated = new GameData(
                 game.gameID(),
                 game.whiteUsername(),
@@ -140,15 +120,31 @@ public class WebSocket {
         );
         gameDAO.updateGame(updated);
 
-        // Broadcast to all clients (players + observers)
-        games.get(gameID).values().forEach(p ->
-                p.ctx().send(gson.toJson(Map.of(
-                        "type", "MOVE",
-                        "game", updated
-                )))
+        LoadGameMessage loadMsg = new LoadGameMessage(updated);
+        games.get(gameID).forEach((otherAuth, session) -> {
+            session.ctx().send(gson.toJson(loadMsg));
+        });
+        NotificationMessage notification = new NotificationMessage(
+                move.toString()
         );
-    }
+        games.get(gameID).forEach((otherAuth, session) -> {
+            if (!otherAuth.equals(auth)) {
+                session.ctx().send(gson.toJson(notification));
+            }
+        });
+        if (game.game().isInCheckmate(game.game().getTeamTurn())) {
+            NotificationMessage checkmate = new NotificationMessage("Game over, checkmate!");
+            games.get(gameID).forEach((otherAuth, session) -> {
+                session.ctx().send(gson.toJson(checkmate));
+            });
+        }
+        if (game.game().isInStalemate(game.game().getTeamTurn())) {
+            NotificationMessage checkmate = new NotificationMessage("Game over, stalemate!");
+            games.get(gameID).forEach((otherAuth, session) -> {
+                session.ctx().send(gson.toJson(checkmate));
+            });
+        }
 
-     */
+    }
 
 }
