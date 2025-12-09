@@ -58,14 +58,15 @@ public class Client {
             System.out.print(SET_TEXT_COLOR_WHITE +
                     "[playing game] > " +
                     RESET_TEXT_COLOR);
-            String[] tokens = sc.nextLine().trim().split(" ");
+            String input = sc.nextLine().trim();
+            String[] tokens = input.split(" ");
             String cmd = tokens[0].toLowerCase();
             try {
                 switch (cmd) {
                     case "help", "h" -> printCommands();
                     case "redraw", "r" -> unknown("redraw");
                     case "leave", "l" -> unknown("leave");
-                    case "move", "m" -> unknown("move");
+                    case "move", "m" -> server.sendWebSocketMessage(input);
                     case "resign", "forfeit", "f" -> unknown("resign");
                     case "highlight", "hl" -> unknown("highlight");
                     default -> unknown(cmd);
