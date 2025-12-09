@@ -2,10 +2,13 @@ package server;
 
 import chess.*;
 import com.google.gson.Gson;
+import dataaccess.classes.SQLAuthDAO;
 import dataaccess.classes.SQLGameDAO;
+import dataaccess.interfaces.GameDAO;
 import io.javalin.websocket.WsCloseContext;
 import io.javalin.websocket.WsConnectContext;
 import io.javalin.websocket.WsMessageContext;
+import model.AuthData;
 import model.GameData;
 import server.recordclasses.PlayerSession;
 
@@ -56,13 +59,31 @@ public class WebSocket {
         String auth = cmd.getAuthToken();
         Integer gameID = cmd.getGameID();
 
-        ChessGame.TeamColor color = ChessGame.TeamColor.OBSERVER;
+        SQLAuthDAO authDAO = new SQLAuthDAO();
+        SQLGameDAO gameDAO = new SQLGameDAO();
+        String username = authDAO.getUsername(auth);
+        GameData gameData = gameDAO.getGame(gameID);
+        ChessGame.TeamColor color;
+        if (gameData.whiteUsername().equals(username)) {
+            color = ChessGame.TeamColor.WHITE;
+        } else if (gameData.blackUsername().equals(username)) {
+            color = ChessGame.TeamColor.BLACK;
+        } else {
+            color = ChessGame.TeamColor.OBSERVER;
+        }
 
         games.putIfAbsent(gameID, new ConcurrentHashMap<>());
         games.get(gameID).put(auth, new PlayerSession(ctx, color.name()));
         Gson gson = new Gson();
-        //NotificationMessage msg = new NotificationMessage("CONNECTED to game " + gameID);
-        //ctx.send(gson.toJson(msg));
+
+        NotificationMessage notification = new NotificationMessage(
+                username + " joined the game as " + color.name().toLowerCase()
+        );
+        games.get(gameID).forEach((otherAuth, session) -> {
+            if (!otherAuth.equals(auth)) { // skip the new user
+                session.ctx().send(gson.toJson(notification));
+            }
+        });
 
         SQLGameDAO dao = new SQLGameDAO();
         GameData game = dao.getGame(gameID);
