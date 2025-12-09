@@ -15,6 +15,7 @@ import server.recordclasses.PlayerSession;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import websocket.commands.UserGameCommand;
+import websocket.messages.ErrorMessage;
 import websocket.messages.LoadGameMessage;
 import websocket.messages.NotificationMessage;
 
@@ -28,17 +29,18 @@ public class WebSocket {
     void onConnect(WsConnectContext wsConnectContext) {}
 
     public void onMessage(WsMessageContext ctx) {
-        String msg = ctx.message();
-
-        UserGameCommand command = gson.fromJson(msg, UserGameCommand.class);
-        String auth = command.getAuthToken();
-        Integer gameID = command.getGameID();
-        UserGameCommand.CommandType type = command.getCommandType();
-
-        games.putIfAbsent(gameID, new ConcurrentHashMap<>());
-        Map<String, PlayerSession> gamePlayers = games.get(gameID);
-
         try {
+            String msg = ctx.message();
+
+            UserGameCommand command = gson.fromJson(msg, UserGameCommand.class);
+            String auth = command.getAuthToken();
+            Integer gameID = command.getGameID();
+            UserGameCommand.CommandType type = command.getCommandType();
+
+            games.putIfAbsent(gameID, new ConcurrentHashMap<>());
+            Map<String, PlayerSession> gamePlayers = games.get(gameID);
+
+
             switch (type) {
                 case CONNECT -> handleConnect(ctx, command);
                 case MAKE_MOVE -> {}
@@ -46,23 +48,29 @@ public class WebSocket {
                 case RESIGN -> {}
             }
         } catch (Exception e) {
-            ctx.send(gson.toJson(Map.of(
-                    "type", "ERROR",
-                    "message", e.getMessage()
-            )));
+            ErrorMessage error = new ErrorMessage(
+                    "Error: " + e.getMessage()
+            );
+            ctx.send(gson.toJson(error));
         }
     }
 
     void onClose(WsCloseContext wsCloseContext) {}
 
-    private void handleConnect(WsMessageContext ctx, UserGameCommand cmd) {
+    private void handleConnect(WsMessageContext ctx, UserGameCommand cmd) throws Exception {
         String auth = cmd.getAuthToken();
         Integer gameID = cmd.getGameID();
 
         SQLAuthDAO authDAO = new SQLAuthDAO();
         SQLGameDAO gameDAO = new SQLGameDAO();
         String username = authDAO.getUsername(auth);
+        if (username == null) {
+            throw new Exception("Username not found");
+        }
         GameData gameData = gameDAO.getGame(gameID);
+        if (gameData == null) {
+            throw new Exception("Bad gameID");
+        }
         ChessGame.TeamColor color;
         if (gameData.whiteUsername().equals(username)) {
             color = ChessGame.TeamColor.WHITE;
@@ -74,7 +82,6 @@ public class WebSocket {
 
         games.putIfAbsent(gameID, new ConcurrentHashMap<>());
         games.get(gameID).put(auth, new PlayerSession(ctx, color.name()));
-        Gson gson = new Gson();
 
         NotificationMessage notification = new NotificationMessage(
                 username + " joined the game as " + color.name().toLowerCase()
