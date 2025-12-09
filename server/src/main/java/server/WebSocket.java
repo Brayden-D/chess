@@ -43,7 +43,7 @@ public class WebSocket {
             switch (type) {
                 case CONNECT -> handleConnect(ctx, command);
                 case MAKE_MOVE -> handleMove(ctx, command);
-                case LEAVE -> {}
+                case LEAVE -> handleLeave(ctx, command);
                 case RESIGN -> handleResign(ctx, command);
             }
         } catch (Exception e) {
@@ -115,14 +115,12 @@ public class WebSocket {
         game.game().makeMove(move);
         if (game.game().isInCheckmate(game.game().getTeamTurn())) {
             NotificationMessage checkmate = new NotificationMessage("Game over, checkmate!");
-            game.game().setTeamTurn(null);
             games.get(gameID).forEach((otherAuth, session) -> {
                 session.ctx().send(gson.toJson(checkmate));
             });
         }
         if (game.game().isInStalemate(game.game().getTeamTurn())) {
             NotificationMessage checkmate = new NotificationMessage("Game over, stalemate!");
-            game.game().setTeamTurn(null);
             games.get(gameID).forEach((otherAuth, session) -> {
                 session.ctx().send(gson.toJson(checkmate));
             });
@@ -187,6 +185,39 @@ public class WebSocket {
                 game.game()
         );
         gameDAO.updateGame(updated);
+    }
+
+    public void handleLeave(WsMessageContext ctx, UserGameCommand command) throws Exception {
+        String auth = command.getAuthToken();
+        int gameID = command.getGameID();
+        String username = authDAO.getUsername(auth);
+        GameData game = gameDAO.getGame(gameID);
+
+        if (username.equals(game.whiteUsername())) {
+            gameDAO.setPlayer(gameID, ChessGame.TeamColor.WHITE, null);
+        }
+        if (username.equals(game.blackUsername())) {
+            gameDAO.setPlayer(gameID, ChessGame.TeamColor.BLACK, null);
+        }
+
+        Map<String, PlayerSession> sessions = games.get(gameID);
+        if (sessions != null) {
+            sessions.remove(auth);
+
+            NotificationMessage msg = new NotificationMessage(username + " has left the game");
+            String json = new Gson().toJson(msg);
+
+            for (PlayerSession session : sessions.values()) {
+                try {
+                    session.send(json);
+                } catch (Exception ignored) {}
+            }
+            if (sessions.isEmpty()) {
+                games.remove(gameID);
+            }
+        }
+
+        ctx.session.close();
     }
 
 }

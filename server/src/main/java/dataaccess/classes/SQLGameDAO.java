@@ -79,6 +79,7 @@ public class SQLGameDAO implements GameDAO {
             throw new RuntimeException("Error: Invalid color");
         }
 
+
         GameData updateData;
         String getGame = "SELECT game_json FROM games WHERE id = ?";
         String setPlayer = "UPDATE games SET game_json = ? WHERE id = ?";
@@ -96,7 +97,7 @@ public class SQLGameDAO implements GameDAO {
 
             // validate and set player
             if (color == ChessGame.TeamColor.WHITE) {
-                if (updateData.whiteUsername() != null) {
+                if (updateData.whiteUsername() != null && username != null) {
                     throw new RuntimeException("Error: already taken");
                 }
                 updateData = new GameData(
@@ -107,7 +108,7 @@ public class SQLGameDAO implements GameDAO {
                         updateData.game()
                 );
             } else if (color == ChessGame.TeamColor.BLACK) {
-                if (updateData.blackUsername() != null) {
+                if (updateData.blackUsername() != null && username != null) {
                     throw new RuntimeException("Error: already taken");
                 }
                 updateData = new GameData(
