@@ -1,14 +1,9 @@
 package ui;
 
-import chess.ChessBoard;
 import chess.ChessGame;
-import chess.ChessPiece;
-import chess.ChessPosition;
-import com.google.gson.Gson;
 import facade.ServerFacade;
 import model.GameData;
 
-import java.io.PrintWriter;
 import java.util.Scanner;
 
 import static ui.EscapeSequences.*;

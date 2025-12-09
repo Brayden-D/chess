@@ -1,10 +1,5 @@
-import chess.*;
-import facade.ServerFacade;
 import ui.Client;
 import ui.EscapeSequences;
-
-import java.util.Scanner;
-import facade.ServerFacade.*;
 
 public class Main {
     public static void main(String[] args) {
