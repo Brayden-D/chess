@@ -165,7 +165,7 @@ public class Client {
         }
 
         server.playGame(color, game.gameID());
-        server.joinWebSocket(game.gameID(), color.name());
+        server.joinWebSocket(game.gameID(), color);
         game = server.listGames().get(index);
         printer.printGame(game, color);
         
@@ -176,7 +176,7 @@ public class Client {
         requireLoggedIn();
         requireArgs(t, 2);
         GameData game = server.listGames().get(Integer.parseInt(t[1]));
-        server.joinWebSocket(game.gameID(), "observe");
+        server.joinWebSocket(game.gameID(), ChessGame.TeamColor.OBSERVER);
         printer.printGame(game, ChessGame.TeamColor.WHITE);
     }
 

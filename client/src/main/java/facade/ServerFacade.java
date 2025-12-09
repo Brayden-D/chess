@@ -46,12 +46,11 @@ public class ServerFacade {
 
     private final Map<WSKey, WebSocket> sockets = new ConcurrentHashMap<>();
     private final HttpClient client = HttpClient.newHttpClient();
-    private WebSocket webSocket;
     String serverURL;
     //only public for testing purposes
     public String authToken;
     int gameID;
-    String role;
+    ChessGame.TeamColor color;
 
     public void setServerURL(String url) {
         this.serverURL = url;
@@ -136,23 +135,18 @@ public class ServerFacade {
     }
 
     // websocket methods
-    public void joinWebSocket(int gameID, String role) {
+    public void joinWebSocket(int gameID, ChessGame.TeamColor color) {
 
-        WSKey key = new WSKey(gameID, role);
+        WSKey key = new WSKey(gameID, color);
         this.gameID = gameID;
-        this.role = role;
+        this.color = color;
 
         String url = serverURL.replace("http", "ws") + "/ws" +
                 "?auth=" + authToken +
                 "&game=" + gameID +
-                "&color=" + role;
+                "&color=" + color.name();
 
-        ChessGame.TeamColor color = null;
-        if (role.equalsIgnoreCase("WHITE")) color = ChessGame.TeamColor.WHITE;
-        if (role.equalsIgnoreCase("BLACK")) color = ChessGame.TeamColor.BLACK;
-        if (role.equalsIgnoreCase("OBSERVE")) color = ChessGame.TeamColor.OBSERVER;
-
-        WebSocket ws = HttpClient.newHttpClient()
+        WebSocket ws = client
                 .newWebSocketBuilder()
                 .buildAsync(URI.create(url), new WSListener(color))
                 .join();
@@ -161,13 +155,13 @@ public class ServerFacade {
     }
 
     public void sendWebSocketMessage(String message) {
-        WSKey key = new WSKey(gameID, role);
+        WSKey key = new WSKey(gameID, color);
         WebSocket ws = sockets.get(key);
 
         if (ws != null) {
             ws.sendText(message, true);
         } else {
-            System.out.println("No WebSocket for " + gameID + " (" + role + ")");
+            System.out.println("No WebSocket for " + gameID + " (" + color + ")");
         }
     }
 
