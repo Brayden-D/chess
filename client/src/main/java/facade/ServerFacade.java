@@ -13,14 +13,16 @@ import java.net.http.WebSocket;
 import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
-import java.util.function.Consumer;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 class WSListener implements WebSocket.Listener {
 
     Printer printer =  new Printer();
+    ChessGame.TeamColor teamColor;
 
-    WSListener() {
-
+    WSListener(ChessGame.TeamColor teamColor) {
+        this.teamColor = teamColor;
     }
 
     @Override
@@ -42,11 +44,14 @@ class WSListener implements WebSocket.Listener {
 
 public class ServerFacade {
 
+    private final Map<WSKey, WebSocket> sockets = new ConcurrentHashMap<>();
     private final HttpClient client = HttpClient.newHttpClient();
     private WebSocket webSocket;
     String serverURL;
     //only public for testing purposes
     public String authToken;
+    int gameID;
+    String role;
 
     public void setServerURL(String url) {
         this.serverURL = url;
@@ -131,22 +136,37 @@ public class ServerFacade {
     }
 
     // websocket methods
-    public void joinWebSocket(int gameID, String color) throws Exception {
-        String url = serverURL.replaceFirst("^http", "ws") + "/ws" +
+    public void joinWebSocket(int gameID, String role) {
+
+        WSKey key = new WSKey(gameID, role);
+        this.gameID = gameID;
+        this.role = role;
+
+        String url = serverURL.replace("http", "ws") + "/ws" +
                 "?auth=" + authToken +
                 "&game=" + gameID +
-                "&color=" + color;
+                "&color=" + role;
 
-        webSocket = HttpClient.newHttpClient()
+        ChessGame.TeamColor color = null;
+        if (role.equalsIgnoreCase("WHITE")) color = ChessGame.TeamColor.WHITE;
+        if (role.equalsIgnoreCase("BLACK")) color = ChessGame.TeamColor.BLACK;
+
+        WebSocket ws = HttpClient.newHttpClient()
                 .newWebSocketBuilder()
-                .buildAsync(URI.create(url), new WSListener())
+                .buildAsync(URI.create(url), new WSListener(color))
                 .join();
+
+        sockets.put(key, ws);
     }
 
     public void sendWebSocketMessage(String message) {
-        System.out.println("Sending message: " + message);
-        if (webSocket != null) {
-            webSocket.sendText(message, true);
+        WSKey key = new WSKey(gameID, role);
+        WebSocket ws = sockets.get(key);
+
+        if (ws != null) {
+            ws.sendText(message, true);
+        } else {
+            System.out.println("No WebSocket for " + gameID + " (" + role + ")");
         }
     }
 
