@@ -1,6 +1,7 @@
 package dataaccess.classes;
 
 import chess.ChessGame;
+import com.google.gson.GsonBuilder;
 import dataaccess.DataAccessException;
 import dataaccess.DatabaseManager;
 import dataaccess.interfaces.GameDAO;
@@ -12,7 +13,8 @@ import com.google.gson.Gson;
 
 public class SQLGameDAO implements GameDAO {
 
-    private final Gson gson = new Gson();
+    private final Gson gson = new GsonBuilder().serializeNulls().create();
+
 
     public GameData createGame(String gameName) {
         if (gameName == null) {

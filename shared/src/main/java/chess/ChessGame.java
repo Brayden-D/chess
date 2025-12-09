@@ -196,7 +196,7 @@ public class ChessGame {
                 Objects.equals(move.getEndPosition(), new ChessPosition(8, 8))) && castleTracker[5];
 
         if (turn == TeamColor.WHITE) {turn = TeamColor.BLACK;}
-        else {turn = TeamColor.WHITE;}
+        else if (turn == TeamColor.BLACK) {turn = TeamColor.WHITE;}
     }
 
     /**

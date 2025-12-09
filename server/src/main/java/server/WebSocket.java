@@ -22,6 +22,8 @@ public class WebSocket {
 
     private final Map<Integer, Map<String, PlayerSession>> games = new ConcurrentHashMap<>();
     private final Gson gson = new Gson();
+    SQLGameDAO gameDAO = new SQLGameDAO();
+    SQLAuthDAO authDAO = new SQLAuthDAO();
 
     void onConnect(WsConnectContext wsConnectContext) {}
     void onClose(WsCloseContext wsCloseContext) {}
@@ -42,7 +44,7 @@ public class WebSocket {
                 case CONNECT -> handleConnect(ctx, command);
                 case MAKE_MOVE -> handleMove(ctx, command);
                 case LEAVE -> {}
-                case RESIGN -> {}
+                case RESIGN -> handleResign(ctx, command);
             }
         } catch (Exception e) {
             ErrorMessage error = new ErrorMessage(
@@ -95,9 +97,10 @@ public class WebSocket {
 
 
     private void handleMove(WsMessageContext ctx, UserGameCommand command) throws Exception {
-        SQLGameDAO gameDAO = new SQLGameDAO();
-        SQLAuthDAO authDAO = new SQLAuthDAO();
         GameData game = gameDAO.getGame(command.getGameID());
+        if (game.game().getTeamTurn() == null) {
+            throw new Exception("Game is over, cannot make a move");
+        }
         int gameID = command.getGameID();
         String auth = command.getAuthToken();
 
@@ -110,6 +113,20 @@ public class WebSocket {
 
         ChessMove move = command.getMove();
         game.game().makeMove(move);
+        if (game.game().isInCheckmate(game.game().getTeamTurn())) {
+            NotificationMessage checkmate = new NotificationMessage("Game over, checkmate!");
+            game.game().setTeamTurn(null);
+            games.get(gameID).forEach((otherAuth, session) -> {
+                session.ctx().send(gson.toJson(checkmate));
+            });
+        }
+        if (game.game().isInStalemate(game.game().getTeamTurn())) {
+            NotificationMessage checkmate = new NotificationMessage("Game over, stalemate!");
+            game.game().setTeamTurn(null);
+            games.get(gameID).forEach((otherAuth, session) -> {
+                session.ctx().send(gson.toJson(checkmate));
+            });
+        }
 
         GameData updated = new GameData(
                 game.gameID(),
@@ -122,29 +139,54 @@ public class WebSocket {
 
         LoadGameMessage loadMsg = new LoadGameMessage(updated);
         games.get(gameID).forEach((otherAuth, session) -> {
-            session.ctx().send(gson.toJson(loadMsg));
+            if (game.game().getTeamTurn() != null) {
+                session.ctx().send(gson.toJson(loadMsg));
+            }
         });
         NotificationMessage notification = new NotificationMessage(
                 move.toString()
         );
         games.get(gameID).forEach((otherAuth, session) -> {
-            if (!otherAuth.equals(auth)) {
+            if (!otherAuth.equals(auth) && game.game().getTeamTurn() != null) {
                 session.ctx().send(gson.toJson(notification));
             }
         });
-        if (game.game().isInCheckmate(game.game().getTeamTurn())) {
-            NotificationMessage checkmate = new NotificationMessage("Game over, checkmate!");
-            games.get(gameID).forEach((otherAuth, session) -> {
-                session.ctx().send(gson.toJson(checkmate));
-            });
+
+    }
+
+    public void handleResign(WsMessageContext ctx, UserGameCommand command) throws Exception {
+        GameData game;
+        try {
+            game = gameDAO.getGame(command.getGameID());
+        } catch (Exception e) {
+            ErrorMessage error = new ErrorMessage("Game not found for gameID " + command.getGameID());
+            ctx.send(gson.toJson(error));
+            return;
         }
-        if (game.game().isInStalemate(game.game().getTeamTurn())) {
-            NotificationMessage checkmate = new NotificationMessage("Game over, stalemate!");
-            games.get(gameID).forEach((otherAuth, session) -> {
-                session.ctx().send(gson.toJson(checkmate));
-            });
+        String auth = command.getAuthToken();
+        int gameID = command.getGameID();
+
+        String username = authDAO.getUsername(auth);
+        if (!username.equals(game.whiteUsername()) && !username.equals(game.blackUsername())) {
+            throw new Exception("Not authorized");
+        }
+        if (game.game().getTeamTurn() == null) {
+            throw new Exception("Game is over, cannot resign");
         }
 
+        NotificationMessage resign = new NotificationMessage("Game over, " + username + " resigned!");
+        game.game().setTeamTurn(null);
+        games.get(gameID).forEach((otherAuth, session) -> {
+            session.ctx().send(gson.toJson(resign));
+        });
+        GameData updated = new GameData(
+                game.gameID(),
+                game.whiteUsername(),
+                game.blackUsername(),
+                game.gameName(),
+                game.game()
+        );
+        gameDAO.updateGame(updated);
     }
 
 }
