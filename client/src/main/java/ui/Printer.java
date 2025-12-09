@@ -16,6 +16,7 @@ public class Printer {
         ChessBoard board = data.game().getBoard();
         boolean isWhite = (color == ChessGame.TeamColor.WHITE);
 
+        // headers
         if (isWhite) {
             System.out.print(SET_BG_COLOR_LIGHT_GREY + SET_TEXT_COLOR_BLACK +
                     "    a  b  c  d  e  f  g  h    " +
@@ -27,7 +28,6 @@ public class Printer {
         }
 
         for (int displayRow = 0; displayRow < 8; displayRow++) {
-            int row = isWhite ? displayRow : 7 - displayRow;
             int printedRank = isWhite ? 8 - displayRow : displayRow + 1;
 
             System.out.print(SET_BG_COLOR_LIGHT_GREY + SET_TEXT_COLOR_BLACK +
@@ -35,10 +35,20 @@ public class Printer {
                     RESET_BG_COLOR + RESET_TEXT_COLOR);
 
             for (int displayCol = 0; displayCol < 8; displayCol++) {
-                int col = isWhite ? displayCol : 7 - displayCol;
-                boolean lightSquare = (row + col) % 2 == 0;
+                int file;
+                int rank;
+
+                if (isWhite) {
+                    rank = 8 - displayRow;
+                    file = displayCol + 1;
+                } else {
+                    rank = displayRow + 1;
+                    file = 8 - displayCol;
+                }
+
+                boolean lightSquare = ((rank - 1) + (file - 1)) % 2 == 0;
                 System.out.print(lightSquare ? SET_BG_COLOR_WHITE : SET_BG_COLOR_BLACK);
-                printPiece(board.getPiece(new ChessPosition(row + 1, col + 1)));
+                printPiece(board.getPiece(new ChessPosition(rank, file)));
                 System.out.print(RESET_BG_COLOR);
             }
 
@@ -65,9 +75,9 @@ public class Printer {
         }
 
         if (piece.getTeamColor() == ChessGame.TeamColor.WHITE) {
-            System.out.print(SET_TEXT_COLOR_RED);
-        } else {
             System.out.print(SET_TEXT_COLOR_BLUE);
+        } else {
+            System.out.print(SET_TEXT_COLOR_RED);
         }
 
         String symbol = switch (piece.getPieceType()) {

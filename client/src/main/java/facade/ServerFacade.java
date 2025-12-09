@@ -35,7 +35,7 @@ class WSListener implements WebSocket.Listener {
     public CompletionStage<?> onText(WebSocket webSocket, CharSequence data, boolean last) {
         System.out.println("Received data: " + data);
         CompletableFuture.runAsync(() -> {
-            printer.handleWSMessage(data.toString(), ChessGame.TeamColor.WHITE);
+            printer.handleWSMessage(data.toString(), teamColor);
         });
         webSocket.request(1);
         return null;
@@ -150,6 +150,7 @@ public class ServerFacade {
         ChessGame.TeamColor color = null;
         if (role.equalsIgnoreCase("WHITE")) color = ChessGame.TeamColor.WHITE;
         if (role.equalsIgnoreCase("BLACK")) color = ChessGame.TeamColor.BLACK;
+        if (role.equalsIgnoreCase("OBSERVE")) color = ChessGame.TeamColor.OBSERVER;
 
         WebSocket ws = HttpClient.newHttpClient()
                 .newWebSocketBuilder()
