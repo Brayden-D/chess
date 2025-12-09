@@ -32,7 +32,7 @@ public class WebSocket {
     }
 
     public void onMessage(WsMessageContext ctx) {
-        System.out.println("Received message: " + ctx.toString());
+        System.out.println("Received message: " + ctx.message());
         String auth = ctx.queryParam("auth");
         Integer gameID = parseInt(ctx.queryParam("game"));
         String color = ctx.queryParam("color");
@@ -47,8 +47,8 @@ public class WebSocket {
 
             String start = input[1];
             String end = input[2];
-            ChessPosition startPos = new ChessPosition(start.charAt(0) - 'a' + 1, start.charAt(1) - '0');
-            ChessPosition endPos = new ChessPosition(end.charAt(0) - 'a' + 1, end.charAt(1) - '0');
+            ChessPosition startPos = new ChessPosition(start.charAt(1) - '0', start.charAt(0) - 'a' + 1);
+            ChessPosition endPos = new ChessPosition(end.charAt(1) - '0', end.charAt(0) - 'a' + 1);
             ChessPiece.PieceType promotionPiece = null;
             try {
                 promotionPiece = switch (input[3]) {

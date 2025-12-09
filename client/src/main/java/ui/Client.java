@@ -17,6 +17,7 @@ public class Client {
     boolean isLoggedIn = false;
     Scanner sc = new Scanner(System.in);
     public ServerFacade server = new ServerFacade();
+    Printer printer = new Printer();
 
 
     public void runREPL() {
@@ -59,14 +60,15 @@ public class Client {
             System.out.print(SET_TEXT_COLOR_WHITE +
                     "[playing game] > " +
                     RESET_TEXT_COLOR);
-            String[] tokens = sc.nextLine().trim().split(" ");
+            String input = sc.nextLine();
+            String[] tokens = input.trim().split(" ");
             String cmd = tokens[0].toLowerCase();
             try {
                 switch (cmd) {
                     case "help", "h" -> unknown("help");
                     case "redraw", "r" -> unknown("redraw");
                     case "leave", "l" -> unknown("leave");
-                    case "move", "m" -> unknown("move");
+                    case "move", "m" -> server.sendWebSocketMessage(input);
                     case "resign", "forfeit", "f" -> unknown("resign");
                     case "highlight", "hl" -> unknown("highlight");
                     default -> unknown(cmd);
@@ -167,9 +169,9 @@ public class Client {
         }
 
         server.playGame(color, game.gameID());
-        server.joinWebSocket(game.gameID(), color.name(), (msg) -> handleWSMessage(msg, color));
+        server.joinWebSocket(game.gameID(), color.name());
         game = server.listGames().get(index);
-        printGame(game, color);
+        printer.printGame(game, color);
         
         playGame();
     }
@@ -178,8 +180,8 @@ public class Client {
         requireLoggedIn();
         requireArgs(t, 2);
         GameData game = server.listGames().get(Integer.parseInt(t[1]));
-        server.joinWebSocket(game.gameID(), "observe", (msg) -> handleWSMessage(msg, ChessGame.TeamColor.WHITE));
-        printGame(game, ChessGame.TeamColor.WHITE);
+        server.joinWebSocket(game.gameID(), "observe");
+        printer.printGame(game, ChessGame.TeamColor.WHITE);
     }
 
     private void unknown(String cmd) {
@@ -215,109 +217,6 @@ public class Client {
                     observe [gamenumber]: observe an active game 
 
                     """);
-        }
-    }
-
-    private void printGame(GameData data, ChessGame.TeamColor color) throws Exception {
-        ChessBoard board = data.game().getBoard();
-        boolean isWhite = (color == ChessGame.TeamColor.WHITE);
-
-        if (isWhite) {
-            System.out.print(SET_BG_COLOR_LIGHT_GREY + SET_TEXT_COLOR_BLACK +
-                    "    a  b  c  d  e  f  g  h    " +
-                    RESET_BG_COLOR + RESET_TEXT_COLOR + "\n");
-        } else {
-            System.out.print(SET_BG_COLOR_LIGHT_GREY + SET_TEXT_COLOR_BLACK +
-                    "    h  g  f  e  d  c  b  a    " +
-                    RESET_BG_COLOR + RESET_TEXT_COLOR + "\n");
-        }
-
-        for (int displayRow = 0; displayRow < 8; displayRow++) {
-            int row = isWhite ? displayRow : 7 - displayRow;
-            int printedRank = isWhite ? 8 - displayRow : displayRow + 1;
-
-            System.out.print(SET_BG_COLOR_LIGHT_GREY + SET_TEXT_COLOR_BLACK +
-                    " " + printedRank + " " +
-                    RESET_BG_COLOR + RESET_TEXT_COLOR);
-
-            for (int displayCol = 0; displayCol < 8; displayCol++) {
-                int col = isWhite ? displayCol : 7 - displayCol;
-                boolean lightSquare = (row + col) % 2 == 0;
-                System.out.print(lightSquare ? SET_BG_COLOR_WHITE : SET_BG_COLOR_BLACK);
-                printPiece(board.getPiece(new ChessPosition(row + 1, col + 1)));
-                System.out.print(RESET_BG_COLOR);
-            }
-
-            System.out.print(SET_BG_COLOR_LIGHT_GREY + SET_TEXT_COLOR_BLACK +
-                    " " + printedRank + " " +
-                    RESET_BG_COLOR + RESET_TEXT_COLOR + "\n");
-        }
-
-        if (isWhite) {
-            System.out.print(SET_BG_COLOR_LIGHT_GREY + SET_TEXT_COLOR_BLACK +
-                    "    a  b  c  d  e  f  g  h    " +
-                    RESET_BG_COLOR + RESET_TEXT_COLOR + "\n\n");
-        } else {
-            System.out.print(SET_BG_COLOR_LIGHT_GREY + SET_TEXT_COLOR_BLACK +
-                    "    h  g  f  e  d  c  b  a    " +
-                    RESET_BG_COLOR + RESET_TEXT_COLOR + "\n\n");
-        }
-    }
-
-    void printPiece(ChessPiece piece) {
-        if (piece == null) {
-            System.out.print("   ");
-            return;
-        }
-
-        if (piece.getTeamColor() == ChessGame.TeamColor.WHITE) {
-            System.out.print(SET_TEXT_COLOR_RED);
-        } else {
-            System.out.print(SET_TEXT_COLOR_BLUE);
-        }
-
-        String symbol = switch (piece.getPieceType()) {
-            case KING -> " K ";
-            case QUEEN -> " Q ";
-            case ROOK -> " R ";
-            case BISHOP -> " B ";
-            case KNIGHT -> " N ";
-            case PAWN -> " P ";
-        };
-
-        System.out.print(symbol);
-        System.out.print(RESET_TEXT_COLOR);
-    }
-
-    void handleWSMessage(String json, ChessGame.TeamColor userColor) {
-
-        class WSMessage {
-            String type;
-            String message;
-            GameData game;
-        }
-
-        var gson = new Gson();
-        var event = gson.fromJson(json, WSMessage.class);
-
-        switch (event.type) {
-
-            case "MOVE" -> {
-                try {
-                    System.out.println("test");
-                    printGame(event.game, userColor);
-                } catch (Exception e) {
-                    System.out.println(e.getMessage());
-                }
-            }
-
-            case "ERROR" -> {
-                System.out.println("Server error: " + event.message);
-            }
-
-            default -> {
-                System.out.println("Unknown WS message: " + json);
-            }
         }
     }
 
