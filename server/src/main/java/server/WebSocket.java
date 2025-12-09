@@ -26,11 +26,13 @@ public class WebSocket {
 
         games.putIfAbsent(gameID, new ConcurrentHashMap<>());
         games.get(gameID).put(auth, new PlayerSession(ctx, color));
+        System.out.println("Connected to server");
 
         ctx.send("CONNECTED to game " + gameID + " as " + color);
     }
 
     public void onMessage(WsMessageContext ctx) {
+        System.out.println("Received message: " + ctx.toString());
         String auth = ctx.queryParam("auth");
         Integer gameID = parseInt(ctx.queryParam("game"));
         String color = ctx.queryParam("color");
@@ -69,7 +71,10 @@ public class WebSocket {
                     throw new InvalidMoveException();
                 }
             } catch (InvalidMoveException e) {
-                ctx.send("Invalid move");
+                ctx.send(gson.toJson(Map.of(
+                        "type", "ERROR",
+                        "message", "Invalid move"
+                )));
                 return;
             }
 
@@ -81,9 +86,11 @@ public class WebSocket {
                     game.game()
             );
             gameDAO.updateGame(updated);
-            gamePlayers.values().forEach(playerSession -> {
-                playerSession.ctx().send("board " + gson.toJson(updated.game()));
-            });
+            System.out.print(updated.game().getBoard());
+            gamePlayers.values().forEach(p ->
+                    p.ctx().send(gson.toJson(Map.of(
+                            "type", "MOVE",
+                            "game", updated))));
             return;
 
         }

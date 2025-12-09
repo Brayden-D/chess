@@ -11,8 +11,16 @@ import java.net.http.HttpResponse;
 import java.net.http.WebSocket;
 import java.util.ArrayList;
 import java.util.concurrent.CompletionStage;
+import java.util.function.Consumer;
 
 class WSListener implements WebSocket.Listener {
+
+    private final Consumer<String> onMessageCallback;
+
+    WSListener(Consumer<String> callback) {
+        this.onMessageCallback = callback;
+    }
+
     @Override
     public void onOpen(WebSocket webSocket) {
         System.out.println("Connected to game");
@@ -21,7 +29,7 @@ class WSListener implements WebSocket.Listener {
 
     @Override
     public CompletionStage<?> onText(WebSocket webSocket, CharSequence data, boolean last) {
-        System.out.println("Received: " + data);
+        onMessageCallback.accept(data.toString());
         webSocket.request(1);
         return null;
     }
@@ -118,7 +126,7 @@ public class ServerFacade {
     }
 
     // websocket methods
-    public void joinWebSocket(int gameID, String color) throws Exception {
+    public void joinWebSocket(int gameID, String color, Consumer<String> callback) throws Exception {
         String url = serverURL.replaceFirst("^http", "ws") + "/ws" +
                 "?auth=" + authToken +
                 "&game=" + gameID +
@@ -126,11 +134,12 @@ public class ServerFacade {
 
         webSocket = HttpClient.newHttpClient()
                 .newWebSocketBuilder()
-                .buildAsync(URI.create(url), new WSListener())
+                .buildAsync(URI.create(url), new WSListener(callback))
                 .join();
     }
 
     public void sendWebSocketMessage(String message) {
+        System.out.println("Sending message: " + message);
         if (webSocket != null) {
             webSocket.sendText(message, true);
         }

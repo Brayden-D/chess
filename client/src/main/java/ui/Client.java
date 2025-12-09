@@ -4,6 +4,7 @@ import chess.ChessBoard;
 import chess.ChessGame;
 import chess.ChessPiece;
 import chess.ChessPosition;
+import com.google.gson.Gson;
 import facade.ServerFacade;
 import model.GameData;
 
@@ -63,7 +64,7 @@ public class Client {
             String cmd = tokens[0].toLowerCase();
             try {
                 switch (cmd) {
-                    case "help", "h" -> printCommands();
+                    case "help", "h" -> unknown("help");
                     case "redraw", "r" -> unknown("redraw");
                     case "leave", "l" -> unknown("leave");
                     case "move", "m" -> server.sendWebSocketMessage(input);
@@ -167,7 +168,7 @@ public class Client {
         }
 
         server.playGame(color, game.gameID());
-        server.joinWebSocket(game.gameID(), color.name());
+        server.joinWebSocket(game.gameID(), color.name(), (msg) -> handleWSMessage(msg, color));
         game = server.listGames().get(index);
         printGame(game, color);
         
@@ -178,7 +179,7 @@ public class Client {
         requireLoggedIn();
         requireArgs(t, 2);
         GameData game = server.listGames().get(Integer.parseInt(t[1]));
-        server.joinWebSocket(game.gameID(), "observe");
+        server.joinWebSocket(game.gameID(), "observe", (msg) -> handleWSMessage(msg, ChessGame.TeamColor.WHITE));
         printGame(game, ChessGame.TeamColor.WHITE);
     }
 
@@ -288,4 +289,37 @@ public class Client {
         System.out.print(symbol);
         System.out.print(RESET_TEXT_COLOR);
     }
+
+    void handleWSMessage(String json, ChessGame.TeamColor userColor) {
+
+        class WSMessage {
+            String type;
+            String message;
+            GameData game;
+        }
+
+        var gson = new Gson();
+        var event = gson.fromJson(json, WSMessage.class);
+
+        switch (event.type) {
+
+            case "MOVE" -> {
+                try {
+                    System.out.println("test");
+                    printGame(event.game, userColor);
+                } catch (Exception e) {
+                    System.out.println(e.getMessage());
+                }
+            }
+
+            case "ERROR" -> {
+                System.out.println("Server error: " + event.message);
+            }
+
+            default -> {
+                System.out.println("Unknown WS message: " + json);
+            }
+        }
+    }
+
 }
