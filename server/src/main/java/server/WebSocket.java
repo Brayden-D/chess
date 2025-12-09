@@ -40,17 +40,15 @@ public class WebSocket {
 
         Map<String, PlayerSession> gamePlayers = games.getOrDefault(gameID, Map.of());
         String[] input = msg.split(" ");
-        System.out.println(input);
 
         if (input[0].equals("move")) {
             SQLGameDAO gameDAO = new SQLGameDAO();
             GameData game = gameDAO.getGame(gameID);
-            System.out.println(game.game().getBoard());
 
             String start = input[1];
             String end = input[2];
-            ChessPosition startPos = new ChessPosition(start.charAt(1) - '0', start.charAt(0) - 'a' + 1);
-            ChessPosition endPos = new ChessPosition(end.charAt(1) - '0', end.charAt(0) - 'a' + 1);
+            ChessPosition startPos = new ChessPosition(start.charAt(0) - 'a' + 1, start.charAt(1) - '0');
+            ChessPosition endPos = new ChessPosition(end.charAt(0) - 'a' + 1, end.charAt(1) - '0');
             ChessPiece.PieceType promotionPiece = null;
             try {
                 promotionPiece = switch (input[3]) {
