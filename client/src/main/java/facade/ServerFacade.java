@@ -3,6 +3,7 @@ package facade;
 import chess.ChessGame;
 import com.google.gson.Gson;
 import model.GameData;
+import ui.Printer;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -10,10 +11,13 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.WebSocket;
 import java.util.ArrayList;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.function.Consumer;
 
 class WSListener implements WebSocket.Listener {
+
+    Printer printer =  new Printer();
 
     WSListener() {
 
@@ -28,6 +32,9 @@ class WSListener implements WebSocket.Listener {
     @Override
     public CompletionStage<?> onText(WebSocket webSocket, CharSequence data, boolean last) {
         System.out.println("Received data: " + data);
+        CompletableFuture.runAsync(() -> {
+            printer.handleWSMessage(data.toString(), ChessGame.TeamColor.WHITE);
+        });
         webSocket.request(1);
         return null;
     }
@@ -124,7 +131,7 @@ public class ServerFacade {
     }
 
     // websocket methods
-    public void joinWebSocket(int gameID, String color, Consumer<String> callback) throws Exception {
+    public void joinWebSocket(int gameID, String color) throws Exception {
         String url = serverURL.replaceFirst("^http", "ws") + "/ws" +
                 "?auth=" + authToken +
                 "&game=" + gameID +
@@ -142,6 +149,5 @@ public class ServerFacade {
             webSocket.sendText(message, true);
         }
     }
-
 
 }

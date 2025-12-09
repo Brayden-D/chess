@@ -4,6 +4,7 @@ import chess.ChessBoard;
 import chess.ChessGame;
 import chess.ChessPiece;
 import chess.ChessPosition;
+import com.google.gson.Gson;
 import model.GameData;
 
 import static ui.EscapeSequences.*;
@@ -80,6 +81,37 @@ public class Printer {
 
         System.out.print(symbol);
         System.out.print(RESET_TEXT_COLOR);
+    }
+
+    class WSMessage {
+        String type;
+        String message;
+        GameData game;
+    }
+
+    public void handleWSMessage(String json, ChessGame.TeamColor userColor) {
+        var gson = new Gson();
+        var event = gson.fromJson(json, WSMessage.class);
+
+        switch (event.type) {
+
+            case "MOVE" -> {
+                System.out.println("2");
+                try {
+                    printGame(event.game, userColor);
+                } catch (Exception e) {
+                    System.out.println(e.getMessage());
+                }
+            }
+
+            case "ERROR" -> {
+                System.out.println("Server error: " + event.message);
+            }
+
+            default -> {
+                System.out.println("Unknown WS message: " + json);
+            }
+        }
     }
 
 }
