@@ -24,6 +24,7 @@ class WSListener implements WebSocket.Listener {
 
     Printer printer =  new Printer();
     ChessGame.TeamColor teamColor;
+    private GameData lastGameState;
 
     WSListener(ChessGame.TeamColor teamColor) {
         this.teamColor = teamColor;
@@ -39,10 +40,25 @@ class WSListener implements WebSocket.Listener {
     public CompletionStage<?> onText(WebSocket webSocket, CharSequence data, boolean last) {
         System.out.println(); //if this line isn't here it breaks. Like, not the formatting, the actual program. w h a t
         CompletableFuture.runAsync(() -> {
-            printer.handleWSMessage(data.toString(), teamColor);
+            GameData gameData = printer.handleWSMessage(data.toString(), teamColor);
+            if (gameData != null) {
+                lastGameState = gameData;
+            }
         });
         webSocket.request(1);
         return null;
+    }
+
+    public void reprintBoard() {
+        if (lastGameState == null) {
+            System.out.println("No game state received yet.");
+            return;
+        }
+        try {
+            printer.printGame(lastGameState, teamColor);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }
 
@@ -56,6 +72,7 @@ public class ServerFacade {
     int gameID;
     ChessGame.TeamColor color;
     Gson gson = new Gson();
+    public WSListener wsListener;
 
     public void setServerURL(String url) {
         this.serverURL = url;
@@ -149,9 +166,10 @@ public class ServerFacade {
         String url = serverURL.replace("http", "ws") + "/ws" +
                 "?auth=" + authToken;
 
+        wsListener = new WSListener(color);
         WebSocket ws = client
                 .newWebSocketBuilder()
-                .buildAsync(URI.create(url), new WSListener(color))
+                .buildAsync(URI.create(url), wsListener)
                 .join();
 
         sockets.put(key, ws);
@@ -214,6 +232,14 @@ public class ServerFacade {
                 gameID
         );
         sendWebSocketMessage(gson.toJson(cmd));
+    }
+
+    public void redrawBoard() {
+        if (wsListener != null) {
+            wsListener.reprintBoard();
+        } else {
+            System.out.println("No WebSocket connected.");
+        }
     }
 
     private static ChessMove getChessMove(String to, String[] args, ChessPosition start) {

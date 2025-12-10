@@ -62,7 +62,7 @@ public class Client {
             try {
                 switch (cmd) {
                     case "help", "h" -> printCommands();
-                    case "redraw", "r" -> unknown("redraw");
+                    case "redraw", "r" -> server.redrawBoard();
                     case "leave", "l" -> {
                         server.leave();
                         playing = false;

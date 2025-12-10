@@ -72,6 +72,10 @@ public class Printer {
         }
     }
 
+    public void printValidMoves(GameData data, ChessGame.TeamColor color, ChessPosition piece) throws Exception {
+        data.game().validMoves(piece);
+    }
+
     void printPiece(ChessPiece piece) {
         if (piece == null) {
             System.out.print("   ");
@@ -103,7 +107,7 @@ public class Printer {
         GameData game;
     }
 
-    public void handleWSMessage(String json, ChessGame.TeamColor userColor) {
+    public GameData handleWSMessage(String json, ChessGame.TeamColor userColor) {
         Gson gson = new Gson();
 
         ServerMessage base = gson.fromJson(json, ServerMessage.class);
@@ -119,6 +123,7 @@ public class Printer {
                 } catch (Exception e) {
                     System.out.println("Unable to print board");
                 }
+                return game;
             }
 
             case ERROR -> {
@@ -133,6 +138,7 @@ public class Printer {
 
             default -> System.out.println("Unknown server message: " + json);
         }
+        return null;
     }
 
 }
