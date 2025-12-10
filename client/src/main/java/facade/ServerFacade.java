@@ -60,6 +60,18 @@ class WSListener implements WebSocket.Listener {
             throw new RuntimeException(e);
         }
     }
+
+    public void printMoves(ChessPosition pos) {
+        if (lastGameState == null) {
+            System.out.println("No game state received yet.");
+            return;
+        }
+        try {
+            printer.printValidMoves(lastGameState, teamColor, pos);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 }
 
 public class ServerFacade {
@@ -237,6 +249,17 @@ public class ServerFacade {
     public void redrawBoard() {
         if (wsListener != null) {
             wsListener.reprintBoard();
+        } else {
+            System.out.println("No WebSocket connected.");
+        }
+    }
+
+    public void validMoves(String input) {
+        if (wsListener != null) {
+            wsListener.printMoves( new ChessPosition(
+                    input.charAt(1) - '0',
+                    input.charAt(0) - 'a' + 1
+            ));
         } else {
             System.out.println("No WebSocket connected.");
         }

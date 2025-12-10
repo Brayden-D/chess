@@ -139,14 +139,11 @@ public class WebSocket {
 
         LoadGameMessage loadMsg = new LoadGameMessage(updated);
         games.get(gameID).forEach((otherAuth, session) -> {
-            if (game.game().getTeamTurn() != null) {
-                try {
-                    session.ctx().send(gson.toJson(loadMsg));
-                    System.out.println("Sending: " + loadMsg);
-                } catch (Exception ex) {
-                    System.out.println("FAILED to send WS message to " + otherAuth);
-                    ex.printStackTrace();
-                }
+            try {
+                session.ctx().send(gson.toJson(loadMsg));
+                System.out.println("Sending to " + otherAuth + ": " + loadMsg);
+            } catch (Exception ex) {
+                System.out.println("FAILED to send WS message to " + otherAuth);
             }
         });
         NotificationMessage notification = new NotificationMessage(

@@ -69,7 +69,7 @@ public class Client {
                     }
                     case "move", "m" -> server.move(input);
                     case "resign", "forfeit", "f" -> server.resign();
-                    case "highlight", "hl" -> unknown("highlight");
+                    case "highlight", "hl" -> server.validMoves(tokens[1]);
                     default -> unknown(cmd);
                 }
             } catch (Exception e) {
