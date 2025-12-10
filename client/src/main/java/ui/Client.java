@@ -12,6 +12,7 @@ public class Client {
 
     Printer printer =  new Printer();
     boolean isLoggedIn = false;
+    boolean isInGame = false;
     Scanner sc = new Scanner(System.in);
     public ServerFacade server = new ServerFacade();
 
@@ -52,20 +53,22 @@ public class Client {
     }
 
     public void playGame() {
-        while (true) {
-            System.out.print(SET_TEXT_COLOR_WHITE +
-                    "[playing game] > " +
-                    RESET_TEXT_COLOR);
+        isInGame = true;
+        boolean playing = true;
+        while (playing) {
             String input = sc.nextLine();
             String[] tokens = input.trim().split(" ");
             String cmd = tokens[0].toLowerCase();
             try {
                 switch (cmd) {
-                    case "help", "h" -> unknown("help");
+                    case "help", "h" -> printCommands();
                     case "redraw", "r" -> unknown("redraw");
-                    case "leave", "l" -> unknown("leave");
-                    case "move", "m" -> server.sendWebSocketMessage(input);
-                    case "resign", "forfeit", "f" -> unknown("resign");
+                    case "leave", "l" -> {
+                        server.leave();
+                        playing = false;
+                    }
+                    case "move", "m" -> server.move(input);
+                    case "resign", "forfeit", "f" -> server.resign();
                     case "highlight", "hl" -> unknown("highlight");
                     default -> unknown(cmd);
                 }
@@ -166,8 +169,6 @@ public class Client {
 
         server.playGame(color, game.gameID());
         server.joinWebSocket(game.gameID(), color);
-        game = server.listGames().get(index);
-        printer.printGame(game, color);
         
         playGame();
     }
@@ -203,7 +204,7 @@ public class Client {
                     register [username] [password] [email]: registers a new user and logs them in 
 
                     """);
-        } else {
+        } else if (!isInGame) {
             System.out.println("""
                     help: lists commands
                     logout: logs user out
@@ -212,6 +213,16 @@ public class Client {
                     join [color] [gamenumber]: join specified game as the specified color
                     observe [gamenumber]: observe an active game 
 
+                    """);
+        } else {
+            System.out.println("""
+                    help: lists commands
+                    redraw: redraws the board
+                    leave: leaves game
+                    move [start square] [end square]: make a move if it is your turn
+                    resign: concede the game
+                    highlight [square]: highlight the square and all moves the piece on that square can make
+                    
                     """);
         }
     }

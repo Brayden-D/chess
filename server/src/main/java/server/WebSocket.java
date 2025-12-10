@@ -29,6 +29,7 @@ public class WebSocket {
     void onClose(WsCloseContext wsCloseContext) {}
 
     public void onMessage(WsMessageContext ctx) {
+        System.out.println("Received message: " + ctx.message());
         try {
             String msg = ctx.message();
 
@@ -97,6 +98,7 @@ public class WebSocket {
 
 
     private void handleMove(WsMessageContext ctx, UserGameCommand command) throws Exception {
+        System.out.println("Move message: " + ctx.message());
         GameData game = gameDAO.getGame(command.getGameID());
         if (game.game().getTeamTurn() == null) {
             throw new Exception("Game is over, cannot make a move");
@@ -138,7 +140,13 @@ public class WebSocket {
         LoadGameMessage loadMsg = new LoadGameMessage(updated);
         games.get(gameID).forEach((otherAuth, session) -> {
             if (game.game().getTeamTurn() != null) {
-                session.ctx().send(gson.toJson(loadMsg));
+                try {
+                    session.ctx().send(gson.toJson(loadMsg));
+                    System.out.println("Sending: " + loadMsg);
+                } catch (Exception ex) {
+                    System.out.println("FAILED to send WS message to " + otherAuth);
+                    ex.printStackTrace();
+                }
             }
         });
         NotificationMessage notification = new NotificationMessage(

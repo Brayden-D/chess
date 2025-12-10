@@ -1,9 +1,13 @@
 package facade;
 
 import chess.ChessGame;
+import chess.ChessMove;
+import chess.ChessPiece;
+import chess.ChessPosition;
 import com.google.gson.Gson;
 import model.GameData;
 import ui.Printer;
+import websocket.commands.UserGameCommand;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -33,7 +37,7 @@ class WSListener implements WebSocket.Listener {
 
     @Override
     public CompletionStage<?> onText(WebSocket webSocket, CharSequence data, boolean last) {
-        System.out.println("Received data: " + data);
+        System.out.println(); //if this line isn't here it breaks. Like, not the formatting, the actual program. w h a t
         CompletableFuture.runAsync(() -> {
             printer.handleWSMessage(data.toString(), teamColor);
         });
@@ -51,6 +55,7 @@ public class ServerFacade {
     public String authToken;
     int gameID;
     ChessGame.TeamColor color;
+    Gson gson = new Gson();
 
     public void setServerURL(String url) {
         this.serverURL = url;
@@ -142,9 +147,7 @@ public class ServerFacade {
         this.color = color;
 
         String url = serverURL.replace("http", "ws") + "/ws" +
-                "?auth=" + authToken +
-                "&game=" + gameID +
-                "&color=" + color.name();
+                "?auth=" + authToken;
 
         WebSocket ws = client
                 .newWebSocketBuilder()
@@ -152,6 +155,12 @@ public class ServerFacade {
                 .join();
 
         sockets.put(key, ws);
+        UserGameCommand cmd = new UserGameCommand(
+                UserGameCommand.CommandType.CONNECT,
+                authToken,
+                gameID
+        );
+        sendWebSocketMessage(gson.toJson(cmd));
     }
 
     public void sendWebSocketMessage(String message) {
@@ -163,6 +172,69 @@ public class ServerFacade {
         } else {
             System.out.println("No WebSocket for " + gameID + " (" + color + ")");
         }
+
     }
+
+    public void move(String input) {
+        String[] args = input.split(" ");
+
+        String from = args[1];
+        String to = args[2];
+
+        ChessPosition start = new ChessPosition(
+                from.charAt(1) - '0',
+                from.charAt(0) - 'a' + 1
+        );
+
+        ChessMove move = getChessMove(to, args, start);
+
+        UserGameCommand cmd = new UserGameCommand(
+                UserGameCommand.CommandType.MAKE_MOVE,
+                authToken,
+                gameID
+        );
+
+        cmd.setMove(move);
+        sendWebSocketMessage(gson.toJson(cmd));
+    }
+
+    public void resign() {
+        UserGameCommand cmd = new UserGameCommand(
+                UserGameCommand.CommandType.RESIGN,
+                authToken,
+                gameID
+        );
+        sendWebSocketMessage(gson.toJson(cmd));
+    }
+
+    public void leave() {
+        UserGameCommand cmd = new UserGameCommand(
+                UserGameCommand.CommandType.LEAVE,
+                authToken,
+                gameID
+        );
+        sendWebSocketMessage(gson.toJson(cmd));
+    }
+
+    private static ChessMove getChessMove(String to, String[] args, ChessPosition start) {
+        ChessPosition end = new ChessPosition(
+                to.charAt(1) - '0',
+                to.charAt(0) - 'a' + 1
+        );
+
+        ChessPiece.PieceType promotion = null;
+        if (args.length > 3) {
+            switch (args[3].trim().toLowerCase()) {
+                case "n", "knight" -> promotion = ChessPiece.PieceType.KNIGHT;
+                case "b", "bishop" -> promotion = ChessPiece.PieceType.BISHOP;
+                case "r", "rook"   -> promotion = ChessPiece.PieceType.ROOK;
+                case "q", "queen"  -> promotion = ChessPiece.PieceType.QUEEN;
+            }
+        }
+
+        ChessMove move = new ChessMove(start, end, promotion);
+        return move;
+    }
+
 
 }

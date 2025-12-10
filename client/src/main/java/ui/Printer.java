@@ -6,6 +6,10 @@ import chess.ChessPiece;
 import chess.ChessPosition;
 import com.google.gson.Gson;
 import model.GameData;
+import websocket.messages.ErrorMessage;
+import websocket.messages.LoadGameMessage;
+import websocket.messages.NotificationMessage;
+import websocket.messages.ServerMessage;
 
 import static ui.EscapeSequences.*;
 import static ui.EscapeSequences.RESET_TEXT_COLOR;
@@ -100,27 +104,34 @@ public class Printer {
     }
 
     public void handleWSMessage(String json, ChessGame.TeamColor userColor) {
-        var gson = new Gson();
-        var event = gson.fromJson(json, WSMessage.class);
+        Gson gson = new Gson();
 
-        switch (event.type) {
+        ServerMessage base = gson.fromJson(json, ServerMessage.class);
 
-            case "MOVE" -> {
-                System.out.println("2");
+        switch (base.getServerMessageType()) {
+
+            case LOAD_GAME -> {
+                LoadGameMessage msg = gson.fromJson(json, LoadGameMessage.class);
+                GameData game = msg.getGame();
+
                 try {
-                    printGame(event.game, userColor);
+                    printGame(game, userColor);
                 } catch (Exception e) {
-                    System.out.println(e.getMessage());
+                    System.out.println("Unable to print board");
                 }
             }
 
-            case "ERROR" -> {
-                System.out.println("Server error: " + event.message);
+            case ERROR -> {
+                ErrorMessage msg = gson.fromJson(json, ErrorMessage.class);
+                System.out.println("SERVER ERROR: " + msg.getErrorMessage());
             }
 
-            default -> {
-                System.out.println("Unknown WS message: " + json);
+            case NOTIFICATION -> {
+                NotificationMessage msg = gson.fromJson(json, NotificationMessage.class);
+                System.out.println("[Notification] " + msg.getMessage());
             }
+
+            default -> System.out.println("Unknown server message: " + json);
         }
     }
 
