@@ -55,7 +55,7 @@ class WSListener implements WebSocket.Listener {
             return;
         }
         try {
-            printer.printGame(lastGameState, teamColor);
+            printer.printGame(lastGameState, teamColor, null);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -67,7 +67,7 @@ class WSListener implements WebSocket.Listener {
             return;
         }
         try {
-            printer.printValidMoves(lastGameState, teamColor, pos);
+            printer.printGame(lastGameState, teamColor, pos);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
