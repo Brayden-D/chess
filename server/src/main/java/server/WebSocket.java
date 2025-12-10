@@ -70,9 +70,9 @@ public class WebSocket {
             throw new Exception("Bad gameID");
         }
         ChessGame.TeamColor color;
-        if (gameData.whiteUsername().equals(username)) {
+        if (username.equals(gameData.whiteUsername())) {
             color = ChessGame.TeamColor.WHITE;
-        } else if (gameData.blackUsername().equals(username)) {
+        } else if (username.equals(gameData.blackUsername())) {
             color = ChessGame.TeamColor.BLACK;
         } else {
             color = ChessGame.TeamColor.OBSERVER;

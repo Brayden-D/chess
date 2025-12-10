@@ -177,8 +177,9 @@ public class Client {
         requireLoggedIn();
         requireArgs(t, 2);
         GameData game = server.listGames().get(Integer.parseInt(t[1]));
+        server.playGame(ChessGame.TeamColor.OBSERVER, game.gameID());
         server.joinWebSocket(game.gameID(), ChessGame.TeamColor.OBSERVER);
-        printer.printGame(game, ChessGame.TeamColor.WHITE);
+        playGame();
     }
 
     private void unknown(String cmd) {
